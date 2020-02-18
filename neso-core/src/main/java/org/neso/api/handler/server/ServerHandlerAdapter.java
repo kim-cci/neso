@@ -7,6 +7,7 @@ import org.neso.api.handler.server.listener.ListenerExceptionCaughtRequestIO;
 import org.neso.api.handler.server.listener.ListenerPostApiExecute;
 import org.neso.api.handler.server.listener.ListenerPreApiExecute;
 import org.neso.core.request.HeadBodyRequest;
+import org.neso.core.request.HeadRequest;
 import org.neso.core.request.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,11 @@ public class ServerHandlerAdapter extends ServerHandler {
 		super(headerLength);
 	}
 
+	@Override
+	public int getBodyLength(HeadRequest request) {
+		String bodyLength = new String(request.getHeadBytes());
+		return Integer.parseInt(bodyLength);
+	}
 	
 	@Override
 	public String getApiIdFromHead(byte[] head) {
@@ -53,7 +59,7 @@ public class ServerHandlerAdapter extends ServerHandler {
 	protected byte[] exceptionCaughtRequestExecute(Session session, HeadBodyRequest request, Throwable exception) {
 		if (listenerExceptionCaughtApiExecute == null) {
 			logger.debug("exceptionCaughtApiExecute occured !! request -> [{}]", Arrays.toString(request.getAllBytes()), exception);
-			return "server error a".getBytes();
+			return "server error".getBytes();
 		} else {
 			return listenerExceptionCaughtApiExecute.event(session, request, exception);
 		}
@@ -70,7 +76,7 @@ public class ServerHandlerAdapter extends ServerHandler {
 	protected byte[] exceptionCaughtRequestIO(Session session, Throwable exception) {
 		if (listenerExceptionCaughtRequestIO == null) {
 			logger.debug("exceptionCaughtRequestIO occured !! clinet ip -> [{}]", session.getRemoteAddr(), exception);
-			return "read/write error a".getBytes();
+			return "read/write error".getBytes();
 		} else {
 			return listenerExceptionCaughtRequestIO.event(session, exception);
 		}

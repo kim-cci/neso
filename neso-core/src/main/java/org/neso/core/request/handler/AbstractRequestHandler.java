@@ -5,7 +5,6 @@ import java.nio.charset.Charset;
 
 import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
-import org.neso.core.request.HeadRequest;
 import org.neso.core.request.handler.task.RequestTask;
 import org.neso.core.request.handler.task.RequestTaskPool;
 import org.neso.core.request.handler.task.RequestTaskQueuePool;
@@ -86,12 +85,7 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 			throw new RuntimeException("not... request instanceof OperableHeadBodyRequest ");
 		}
 	}
-	
-	@Override
-	public int getBodyLength(HeadRequest request) {
-		String bodyLength = new String(request.getHeadBytes());
-		return Integer.parseInt(bodyLength);
-	}
+
 	
 	@Override
 	public void onExceptionRequestIO(Client client, Throwable exception) {
