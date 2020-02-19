@@ -1,7 +1,7 @@
 package org.neso.sample.chapter4;
 
 
-import org.neso.api.handler.server.ServerHandlerAdapter;
+import org.neso.api.handler.server.ServerHandlerListenerAdapter;
 import org.neso.api.handler.server.listener.ListenerExceptionCaughtRequestExecute;
 import org.neso.api.handler.server.support.HeadBasedServerHandler;
 import org.neso.core.request.HeadBodyRequest;
@@ -12,7 +12,7 @@ public class ExceptionHandleServerTest {
 
 	public static void main(String[] args) {
 		
-		ServerHandlerAdapter serverHandler = new HeadBasedServerHandler(8, 0, 2, 2, 6);
+		ServerHandlerListenerAdapter serverHandler = new HeadBasedServerHandler(8, 0, 2, 2, 6);
 		serverHandler.registApi("sign", request -> {
 			
 			if ("john".equals(new String(request.getBodyBytes()))) {
@@ -32,7 +32,7 @@ public class ExceptionHandleServerTest {
 			public byte[] event(Session session, HeadBodyRequest request, Throwable exception) {
 				System.out.println("예외가 발생 했습니다." + exception.toString());
 				System.out.println("요청 ip " + session.getRemoteAddr());
-				return "fail".getBytes();
+				return "error".getBytes();
 			}
 		});
 

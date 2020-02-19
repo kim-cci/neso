@@ -2,7 +2,7 @@ package org.neso.api.handler.server.support;
 
 import java.util.Arrays;
 
-import org.neso.api.handler.server.ServerHandlerAdapter;
+import org.neso.api.handler.server.ServerHandlerListenerAdapter;
 import org.neso.core.request.HeadRequest;
 
 /**
@@ -19,7 +19,7 @@ import org.neso.core.request.HeadRequest;
  * apiIdFieldOffsetOnBody -> 0
  * apiIdFieldLengthOnBody -> 12
  */
-public class BodyLengthHeadServerHandler extends ServerHandlerAdapter {
+public class BodyLengthHeadServerHandler extends ServerHandlerListenerAdapter {
 	
 	final private int apiIdFieldOffsetOnBody;
 	final private int apiIdFieldLengthOnBody;

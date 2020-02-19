@@ -93,24 +93,31 @@ public abstract class ServerHandler extends AbstractRequestHandler implements Ap
 	@Override
 	final public void onExceptionRequestIO(Client client, Throwable exception) {
 		
-		byte[] errorMessage = "read/write error".getBytes();
+		byte[] errorMessage = null;
 		try {
 			errorMessage = exceptionCaughtRequestIO(client, exception);
+
 		} catch (Exception e) {
 			logger.error("occurred serverHandler's exceptionCaughtRequestIO ");
 		}
-		
+		if (errorMessage == null) {
+			errorMessage = "read/write error".getBytes();
+		}
 		client.write(errorMessage, true);
 	}
 	
 	@Override
 	final public void onExceptionRequestExecute(Client client, HeadBodyRequest request, Throwable exception) {
-		byte[] errorMessage = "request execute error".getBytes();
 		
+		
+		byte[] errorMessage = null;
 		try {
 			errorMessage = exceptionCaughtRequestExecute(client, request, exception);
 		} catch (Exception e) {
 			logger.error("occurred serverHandler's exceptionCaughtRequestIO ");
+		}
+		if (errorMessage == null) {
+			 errorMessage = "request execute error".getBytes();
 		}
 		client.write(errorMessage);
 	}

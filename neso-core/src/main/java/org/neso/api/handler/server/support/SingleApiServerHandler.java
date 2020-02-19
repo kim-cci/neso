@@ -3,7 +3,7 @@ package org.neso.api.handler.server.support;
 import java.util.Arrays;
 
 import org.neso.api.Api;
-import org.neso.api.handler.server.ServerHandlerAdapter;
+import org.neso.api.handler.server.ServerHandlerListenerAdapter;
 import org.neso.core.request.HeadRequest;
 
 /**
@@ -15,7 +15,7 @@ import org.neso.core.request.HeadRequest;
  * 
  * headLength = 3
  */
-public class SingleApiServerHandler extends ServerHandlerAdapter {
+public class SingleApiServerHandler extends ServerHandlerListenerAdapter {
 
 	public SingleApiServerHandler(int headLength, Api api) {
 		super(headLength);
