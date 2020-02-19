@@ -22,7 +22,7 @@ public abstract class ServerHandler extends AbstractRequestHandler implements Ap
 	
 	private Map<String, Api> apiHandlerMap = new ConcurrentHashMap<String, Api>();
 
-	public ServerHandler(int headerLength) { 
+	protected ServerHandler(int headerLength) { 
 		this(headerLength, DEFAULT_TASK_MAX_THREAD_CNT);
 	}
 
@@ -61,9 +61,6 @@ public abstract class ServerHandler extends AbstractRequestHandler implements Ap
 		return null;
     }
 	
-	public Api getApi(String apiKey) {
-		return apiHandlerMap.get(apiKey);
-	}
 
 	@Override
 	public void onRequest(Client client, HeadBodyRequest req) {
@@ -94,7 +91,7 @@ public abstract class ServerHandler extends AbstractRequestHandler implements Ap
 	}
 
 	@Override
-	public void onExceptionRequestIO(Client client, Throwable exception) {
+	final public void onExceptionRequestIO(Client client, Throwable exception) {
 		
 		byte[] errorMessage = "read/write error".getBytes();
 		try {
@@ -107,7 +104,7 @@ public abstract class ServerHandler extends AbstractRequestHandler implements Ap
 	}
 	
 	@Override
-	public void onExceptionRequestExecute(Client client, HeadBodyRequest request, Throwable exception) {
+	final public void onExceptionRequestExecute(Client client, HeadBodyRequest request, Throwable exception) {
 		byte[] errorMessage = "request execute error".getBytes();
 		
 		try {
@@ -116,7 +113,6 @@ public abstract class ServerHandler extends AbstractRequestHandler implements Ap
 			logger.error("occurred serverHandler's exceptionCaughtRequestIO ");
 		}
 		client.write(errorMessage);
-		
 	}
 	
 	protected abstract String getApiIdFromHead(byte[] head);

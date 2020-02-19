@@ -1,5 +1,6 @@
 package org.neso.api.handler.server;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import org.neso.api.handler.server.listener.ListenerExceptionCaughtRequestExecute;
@@ -7,7 +8,6 @@ import org.neso.api.handler.server.listener.ListenerExceptionCaughtRequestIO;
 import org.neso.api.handler.server.listener.ListenerPostApiExecute;
 import org.neso.api.handler.server.listener.ListenerPreApiExecute;
 import org.neso.core.request.HeadBodyRequest;
-import org.neso.core.request.HeadRequest;
 import org.neso.core.request.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,28 +21,47 @@ import io.netty.util.internal.StringUtil;
  * getApiIdFromHead 또는 getApiIdFromBody를 Override하여
  * head byte array나 body byte array로부터 API 식별값(String)을 반환해줘야 한다.
  */
-public class ServerHandlerAdapter extends ServerHandler {
+public abstract class ServerHandlerAdapter extends ServerHandler {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	
-	public ServerHandlerAdapter(int headerLength) {
+	protected ServerHandlerAdapter(int headerLength) {
 		super(headerLength);
+		checkConcreteGetApi(this.getClass());
 	}
 
+    private void checkConcreteGetApi(Class<? extends ServerHandlerAdapter> c) {
+
+        Class<?> clazz = c;
+        boolean isConcreteGetApiFromHead = false;
+        boolean isConcreteGetApiFromBody = false;
+        while (!clazz.equals(ServerHandlerAdapter.class)) {
+            Method[] thisMethods = clazz.getDeclaredMethods();
+            for (Method method : thisMethods ) {
+            	if ("getApiIdFromHead".equals(method.getName())) {
+            		isConcreteGetApiFromHead = true;
+            	}
+            	
+            	if ("getApiIdFromBody".equals(method.getName())) {
+            		isConcreteGetApiFromBody = true;
+            	}
+            }
+            clazz = clazz.getSuperclass();
+        }
+        
+        if (!isConcreteGetApiFromHead && !isConcreteGetApiFromBody) {
+        	throw new RuntimeException("required override 'getApiIdFromHead' or 'getApiIdFromBody' in ServerHandler");
+        }
+    }
+
 	@Override
-	public int getBodyLength(HeadRequest request) {
-		String bodyLength = new String(request.getHeadBytes());
-		return Integer.parseInt(bodyLength);
-	}
-	
-	@Override
-	public String getApiIdFromHead(byte[] head) {
+	protected String getApiIdFromHead(byte[] head) {
 		return StringUtil.EMPTY_STRING;
 	}
 
 	@Override
-	public String getApiIdFromBody(byte[] body) {
+	protected String getApiIdFromBody(byte[] body) {
 		return StringUtil.EMPTY_STRING;
 	}
 

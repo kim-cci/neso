@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import org.neso.api.Api;
 import org.neso.api.handler.server.ServerHandlerAdapter;
-import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.HeadRequest;
 
 /**
@@ -29,7 +28,7 @@ public class SingleApiServerHandler extends ServerHandlerAdapter {
 	}
 	
 	@Override
-	public Api apiMatch(HeadBodyRequest request) {
-		return getApi("_SINGLE_API");
+	protected String getApiIdFromHead(byte[] head) {
+		return "_SINGLE_API";
 	}
 }
