@@ -1,4 +1,4 @@
-package org.neso.sample.chapter05;
+package org.neso.sample.chapter04;
 
 import org.neso.bind.DataType;
 import org.neso.bind.annotation.DataField;

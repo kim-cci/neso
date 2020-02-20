@@ -1,7 +1,7 @@
 package org.neso.sample.chapter04;
 
-import org.neso.bind.util.ByteBindUtils;
-import org.neso.core.Api;
+import org.neso.api.Api;
+import org.neso.bind.util.ByteBindUtils; 
 import org.neso.core.request.HeadBodyRequest;
 
 public class DepositApiHandler implements Api {

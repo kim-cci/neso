@@ -1,6 +1,5 @@
 package org.neso.sample.chapter06.runner;
 
-import org.neso.core.support.server.ConnectionlessServer;
 import org.neso.sample.chapter06.api.DepositApiHandler;
 import org.neso.sample.chapter06.api.TransferApiHandler;
 import org.neso.sample.chapter06.api.WithdrawApiHandler;

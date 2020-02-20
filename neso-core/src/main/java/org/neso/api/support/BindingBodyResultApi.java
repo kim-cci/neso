@@ -7,7 +7,7 @@ import org.neso.bind.util.ByteBindUtils;
 import org.neso.bind.util.ClassUtils;
 import org.neso.core.request.HeadBodyRequest;
 
-public abstract class BindingBodyResultApiHandler<HEAD, BODY , RESULT> implements Api {
+public abstract class BindingBodyResultApi<HEAD, BODY , RESULT> implements Api {
 
 	@SuppressWarnings("unchecked")
 	@Override

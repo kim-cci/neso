@@ -1,8 +1,7 @@
 package org.neso.sample.chapter06.server;
 
-import org.neso.bind.util.ByteBindUtils;
+import org.neso.api.server.handler.support.HeadBasedServerHandler;
 import org.neso.core.request.HeadBodyRequest;
-import org.neso.core.support.server.handler.HeadBasedServerHandler;
 
 
 public class BankServerHandler extends HeadBasedServerHandler {
