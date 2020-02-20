@@ -21,9 +21,9 @@ public abstract class AbstractRequestTaskPool implements RequestTaskPool {
 			logger.debug("request cant registered in the request pool");
 			
 			byte[] rejectMessage = DEFAULT_REJECT_MESSAGE.getBytes();
-			if (this instanceof RequestRejectListener) {
+			if (request.getRequestHandler() instanceof RequestRejectListener) {
 				
-				RequestRejectListener listener = (RequestRejectListener) this;
+				RequestRejectListener listener = (RequestRejectListener) request.getRequestHandler();
 			
 				try {
 					rejectMessage = listener.onRequestReject(client.getServerContext(), getMaxThreads(), request);

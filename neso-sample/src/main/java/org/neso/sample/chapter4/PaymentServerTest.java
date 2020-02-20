@@ -1,6 +1,6 @@
 package org.neso.sample.chapter4;
 
-import org.neso.api.handler.server.ServerHandler;
+import org.neso.api.server.handler.ServerHandler;
 import org.neso.core.server.Server;
 
 public class PaymentServerTest {

@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.neso.api.handler.server.ServerHandler;
+import org.neso.api.server.handler.ServerHandler;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.HeadRequest;
 import org.neso.core.request.Session;
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * 결제 서버
  */
 public class PaymentServer extends ServerHandler {
-	
+
 	final Logger logSystem = LoggerFactory.getLogger(this.getClass());
 	
 	private static final int HEAD_LENGTH = 4;
@@ -26,7 +26,8 @@ public class PaymentServer extends ServerHandler {
 	
 	@Override
 	public int getBodyLength(HeadRequest request) {
-		return ByteBuffer.wrap(request.getHeadBytes()).getInt();	//본문 길이는 헤더에 4바이트(integer )에 정의되어 있음
+        	//본문 길이는 헤더에 4바이트(integer )에 정의되어 있음
+		return ByteBuffer.wrap(request.getHeadBytes()).getInt();	
 	}
 	
 	@Override
@@ -43,17 +44,15 @@ public class PaymentServer extends ServerHandler {
 
 	@Override
 	public byte[] preApiExecute(Session session, HeadBodyRequest request) {
-		byte[] headers = request.getHeadBytes();
-		logSystem.info("api call, ip={}, head={}", session.getRemoteAddr(), Arrays.toString(headers));
-		
-		request.addAttribute("공통정보", "1");
+		//API 전처리 없음
 		return null;
 	}
 
 	@Override
 	public byte[] postApiExecute(Session session, HeadBodyRequest request, byte[] response) {
 		logSystem.info("api result, ip={}, head={}", session.getRemoteAddr(), Arrays.toString(response));
-		return ArrayUtils.addAll(request.getHeadBytes(), response);	//요청 헤더 + API 실행 결과로 응답 내려주기
+		//요청 헤더 + API 실행 결과로 응답 내려주기
+        	return ArrayUtils.addAll(request.getHeadBytes(), response);	
 	}
 
 
@@ -63,9 +62,10 @@ public class PaymentServer extends ServerHandler {
 	}
 
 	@Override
-	protected byte[] exceptionCaughtRequestExecute(Session session, HeadBodyRequest request, Throwable exception) {
+	protected byte[] exceptionCaughtDoRequest(Session session, HeadBodyRequest request, Throwable exception) {
 		byte[] headers = request.getHeadBytes();
 		logSystem.error("API 실행 오류 발생, ip={}, head={}, error={}", session.getRemoteAddr(), Arrays.toString(headers), exception);
-		return ArrayUtils.addAll(request.getHeadBytes(), "server error".getBytes());	//요청 헤더 + API 실행 결과로 응답 내려주기
+		//요청 헤더 + API 실행 결과로 응답 내려주기
+        	return ArrayUtils.addAll(request.getHeadBytes(), "server error".getBytes());	
 	}
 }
