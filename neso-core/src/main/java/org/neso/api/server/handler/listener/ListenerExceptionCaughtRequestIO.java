@@ -1,4 +1,4 @@
-package org.neso.api.handler.server.listener;
+package org.neso.api.server.handler.listener;
 
 import org.neso.core.request.Session;
 

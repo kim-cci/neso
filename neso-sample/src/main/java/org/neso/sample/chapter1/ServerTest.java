@@ -3,7 +3,7 @@ package org.neso.sample.chapter1;
 
 import java.util.Arrays;
 
-import org.neso.api.handler.server.support.SingleApiServerHandler;
+import org.neso.api.server.handler.support.SingleApiServerHandler;
 import org.neso.core.server.Server;
 
 public class ServerTest { 

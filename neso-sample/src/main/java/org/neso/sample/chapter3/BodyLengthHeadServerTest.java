@@ -1,7 +1,7 @@
 package org.neso.sample.chapter3;
 
-import org.neso.api.handler.server.ServerHandler;
-import org.neso.api.handler.server.support.BodyLengthHeadServerHandler;
+import org.neso.api.server.handler.ServerHandler;
+import org.neso.api.server.handler.support.BodyLengthHeadServerHandler;
 import org.neso.core.server.Server;
 
 public class BodyLengthHeadServerTest {

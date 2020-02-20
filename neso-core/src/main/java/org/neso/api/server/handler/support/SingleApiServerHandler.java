@@ -1,9 +1,9 @@
-package org.neso.api.handler.server.support;
+package org.neso.api.server.handler.support;
 
 import java.util.Arrays;
 
 import org.neso.api.Api;
-import org.neso.api.handler.server.ServerHandlerListenerAdapter;
+import org.neso.api.server.handler.ServerHandlerListenerAdapter;
 import org.neso.core.request.HeadRequest;
 
 /**

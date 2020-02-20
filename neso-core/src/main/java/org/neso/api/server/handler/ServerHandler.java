@@ -1,6 +1,5 @@
-package org.neso.api.handler.server;
-
-import java.util.Date;
+package org.neso.api.server.handler;
+ 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -11,10 +10,8 @@ import org.neso.core.exception.ClientAbortException;
 import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.Session;
-import org.neso.core.request.handler.AbstractRequestHandler;
-import org.neso.core.request.handler.task.RequestTask;
-import org.neso.core.request.handler.task.RequestTaskThreadPool;
-import org.neso.core.request.internal.OperableHeadBodyRequest;
+import org.neso.core.request.handler.AbstractRequestHandler; 
+import org.neso.core.request.handler.task.RequestTaskThreadPool; 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +19,8 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	private final static String MATCH_API_ATTR_NAME = "_matched_api_obj";
+	public final static String MATCH_API_ATTR_NAME = "_matched_api_obj";
+	
 	private Map<String, Api> apiHandlerMap = new ConcurrentHashMap<String, Api>();
 
 	protected ServerHandler(int headerLength) { 
@@ -71,50 +69,35 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 		return apiKey;
 	}
 	
-
-	@Override
-	final public void onRequest(Client client, HeadBodyRequest req) {
-		
-		if (req instanceof OperableHeadBodyRequest) {
-			
-			OperableHeadBodyRequest request = (OperableHeadBodyRequest) req;
-			
-			try {
-				Api matchApi = apiMatch(request);
-				if (matchApi == null) {
-					throw new ApiNotFoundException(request, null);
-				}
-				
-				request.addAttribute(MATCH_API_ATTR_NAME, matchApi);
-			} catch (Exception e) {
-				throw new ApiNotFoundException(request, e);
-			}
-			
-			RequestTask task = new RequestTask(client, request, this);
-			
-			getRequestTaskPool().register(task, client, req);
-			
-		} else {
-			throw new RuntimeException("not... request instanceof OperableHeadBodyRequest ");
-		}
-	}
-
 	public void registApi(String apiKey, Api api) {
 		apiHandlerMap.put(apiKey, api);
         logger.debug("{}({}) Api added to [{}]", apiKey, api.getClass().getSimpleName(), this.getClass().getSimpleName());
 	}
 
 	@Override
+	final public void onRequest(Client client, HeadBodyRequest request) {
+		try {
+			Api matchApi = apiMatch(request);
+			if (matchApi == null) {
+				throw new ApiNotFoundException(request, null);
+			}
+			
+			request.addAttribute(MATCH_API_ATTR_NAME, matchApi);
+		} catch (Exception e) {
+			throw new ApiNotFoundException(request, e);
+		}
+		
+		super.onRequest(client, request);
+	}
+	
+	@Override
 	final public void doRequest(Client client, HeadBodyRequest request) throws Exception {
+		
 		Api exeucteApi = request.getAttribute(MATCH_API_ATTR_NAME);
 		if (exeucteApi == null) {
 			throw new ApiNotFoundException(request, null);
 		}
-		
-		logger.debug("request task start.. {}", new Date());
-		
-		long taskStartTime = System.nanoTime();
-
+  
 		byte[] response = preApiExecute(client, request);
 			
 		if (response == null) {
@@ -125,12 +108,7 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 				response = postR;
 			}
 		}
-			
-		long elapsedTime = System.nanoTime() - taskStartTime;	//TODO //지연 리스터 처리
-		elapsedTime = elapsedTime / 1000000;
-			
-		logger.debug("request task end.. elapsedTime-> {} ms", elapsedTime);
-		
+ 
 		try {
 			client.write(response == null ? new byte[0] : response);
 		} catch (ClientAbortException cae) {

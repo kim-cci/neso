@@ -3,7 +3,7 @@ package org.neso.api.support;
 
 import org.apache.commons.lang3.StringUtils;
 import org.neso.api.Api;
-import org.neso.api.handler.server.ServerHandler;
+import org.neso.api.server.handler.ServerHandler;
 import org.neso.core.request.HeadBodyRequest;
 
 

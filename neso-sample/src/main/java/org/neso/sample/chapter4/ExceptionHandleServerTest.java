@@ -1,9 +1,9 @@
 package org.neso.sample.chapter4;
 
 
-import org.neso.api.handler.server.ServerHandlerListenerAdapter;
-import org.neso.api.handler.server.listener.ListenerExceptionCaughtRequestExecute;
-import org.neso.api.handler.server.support.HeadBasedServerHandler;
+import org.neso.api.server.handler.ServerHandlerListenerAdapter;
+import org.neso.api.server.handler.listener.ListenerExceptionCaughtRequestExecute;
+import org.neso.api.server.handler.support.HeadBasedServerHandler;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.Session;
 import org.neso.core.server.Server;
