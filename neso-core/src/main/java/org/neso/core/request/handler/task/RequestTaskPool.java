@@ -9,5 +9,5 @@ public interface RequestTaskPool {
 	
 	public boolean isAsyncResponse();
 	
-	public void invoke(Runnable task, Client client, HeadBodyRequest request);
+	public void register(RequestTask task, Client client, HeadBodyRequest request);
 }

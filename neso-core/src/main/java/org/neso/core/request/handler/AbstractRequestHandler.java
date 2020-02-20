@@ -24,7 +24,7 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	private Charset serverCharSet = Charset.defaultCharset();
 	 
 	
-	private boolean repeatableRequest;
+	private boolean repeatableRequest = true;
 
 	private RequestTaskPool requestTaskPool;
 	
@@ -78,27 +78,12 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 			
 			RequestTask task = new RequestTask(client, request, this);
 			
-			requestTaskPool.invoke(task, client, request);
+			requestTaskPool.register(task, client, request);
 			 
 	
 		} else {
 			throw new RuntimeException("not... request instanceof OperableHeadBodyRequest ");
 		}
-	}
-
-	
-	@Override
-	public void onExceptionRequestIO(Client client, Throwable exception) {
-		
-		byte[] errorMessage = "read/write error".getBytes();
-		client.write(errorMessage, true);
-	}
-	
-	@Override
-	public void onExceptionRequestExecute(Client client, HeadBodyRequest request, Throwable exception) {
-		byte[] errorMessage = "request execute error".getBytes();
-		client.write(errorMessage, true);
-		
 	}
 	
 	
@@ -110,6 +95,4 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	public boolean isRepeatableRequest() {
 		return repeatableRequest;
 	}
-	
-	public abstract byte[] doRequest(Client client, HeadBodyRequest request);
 }

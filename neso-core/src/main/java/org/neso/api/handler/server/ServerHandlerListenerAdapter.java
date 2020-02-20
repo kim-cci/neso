@@ -28,7 +28,7 @@ public abstract class ServerHandlerListenerAdapter extends ServerHandlerAdapter 
 	}
 	
 	@Override
-	protected byte[] exceptionCaughtRequestExecute(Session session, HeadBodyRequest request, Throwable exception) {
+	protected byte[] exceptionCaughtDoRequest(Session session, HeadBodyRequest request, Throwable exception) {
 		if (listenerExceptionCaughtApiExecute == null) {
 			logger.debug("exceptionCaughtApiExecute occured !! request -> [{}]", Arrays.toString(request.getAllBytes()), exception);
 			return "server error".getBytes();

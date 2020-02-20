@@ -48,7 +48,18 @@ public interface RequestHandler {
      */
     public void onRequest(Client client, HeadBodyRequest request);
     
+    /**
+     * request 처리  준비가 되면 호출 
+     * @param client 요청 클라이언트
+     * @param request 요청
+     */
+    public void doRequest(Client client, HeadBodyRequest request) throws Exception;
     
+    
+    /**
+     * 접속 종료시 호출
+     * @param client
+     */
     public void onDisConnect(Client client);
     
     
@@ -58,7 +69,7 @@ public interface RequestHandler {
      * @param exception
      * @return 클라이언트에게 내려줄 응답 byte array
      */
-    public void onExceptionRequestExecute(Client client, HeadBodyRequest request, Throwable exception);
+    public void onExceptionDoRequest(Client client, HeadBodyRequest request, Throwable exception);
 
     /**
      * 클라이언트로와 I/O 처리 중 예외가 발생하면 호출된다.

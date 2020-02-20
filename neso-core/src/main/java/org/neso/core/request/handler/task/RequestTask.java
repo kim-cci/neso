@@ -29,35 +29,27 @@ public class RequestTask implements Runnable {
 		
 		long taskStartTime = System.nanoTime();
 		
-		byte[] response = null;
 		try {
-			response = requestHandler.doRequest(client, request);
-			
-			long elapsedTime = System.nanoTime() - taskStartTime;	//TODO //지연 리스터 처리
-			elapsedTime = elapsedTime / 1000000;
+			requestHandler.doRequest(client, request);
 
-			logger.debug("request task end.. elapsedTime-> {} ms", elapsedTime);
 		} catch (Exception e) {
 			
 			try {
-				requestHandler.onExceptionRequestExecute(client, request, e);
+				requestHandler.onExceptionDoRequest(client, request, e);
 				
 			} catch (Exception e2) {
 				logger.error("occurred requestHandler's exceptionCaughtRequestExecute.. client disconnect", e2);
 				client.disconnect();
 			}
-		}
-
-
-		try {
-			client.write(response == null ? new byte[0] : response);
 			
-		} catch (Exception cae) {
-			//정상 응답 write가 지연될 경우 예외 발생
-			requestHandler.onExceptionRequestIO(client, cae);	
-		}
+		} finally {
+			
+			long elapsedTime = System.nanoTime() - taskStartTime;	//TODO //지연 리스터 처리
+			elapsedTime = elapsedTime / 1000000;
 
-		request.release();
+			logger.debug("request task end.. elapsedTime-> {} ms", elapsedTime);
+			request.release();
+		}
 	}
 }
 

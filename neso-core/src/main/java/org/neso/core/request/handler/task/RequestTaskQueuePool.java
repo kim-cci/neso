@@ -23,7 +23,7 @@ public class RequestTaskQueuePool extends AbstractRequestTaskPool {
 	}
 	
 	@Override
-	public synchronized boolean register(Runnable task) {
+	public synchronized boolean invoke(Runnable task) {
 		
 		boolean reg = taskPool.offer(task);
 		if (reg) {

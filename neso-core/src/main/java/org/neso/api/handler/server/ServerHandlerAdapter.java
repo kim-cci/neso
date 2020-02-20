@@ -71,7 +71,7 @@ public abstract class ServerHandlerAdapter extends ServerHandler {
 	}
 
 	@Override
-	protected byte[] exceptionCaughtRequestExecute(Session session, HeadBodyRequest request, Throwable exception) {
+	protected byte[] exceptionCaughtDoRequest(Session session, HeadBodyRequest request, Throwable exception) {
 		return null;
 	}
 }

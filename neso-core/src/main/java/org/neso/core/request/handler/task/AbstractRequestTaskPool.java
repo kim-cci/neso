@@ -16,8 +16,8 @@ public abstract class AbstractRequestTaskPool implements RequestTaskPool {
 	
 	
 	@Override
-	public void invoke(Runnable task, Client client, HeadBodyRequest request) {
-		if (!register(task)) {
+	public void register(RequestTask task, Client client, HeadBodyRequest request) {
+		if (!invoke(task)) {
 			logger.debug("request cant registered in the request pool");
 			
 			byte[] rejectMessage = DEFAULT_REJECT_MESSAGE.getBytes();
@@ -37,5 +37,5 @@ public abstract class AbstractRequestTaskPool implements RequestTaskPool {
 		}
 	}
 	
-	public abstract boolean register(Runnable task);
+	public abstract boolean invoke(Runnable task);
 }
