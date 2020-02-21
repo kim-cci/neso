@@ -28,7 +28,7 @@ public class SingleApiServerHandler extends ServerHandlerListenerAdapter {
 	}
 	
 	@Override
-	protected String getApiIdFromHead(byte[] head) {
+	protected String getApiKeyFromHead(byte[] head) {
 		return "_SINGLE_API";
 	}
 }

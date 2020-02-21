@@ -61,9 +61,9 @@ public abstract class ServerHandler extends AbstractRequestHandler {
     }
 	
 	protected String getApiKey(HeadBodyRequest request) {
-		String apiKey = getApiIdFromHead(request.getHeadBytes());
+		String apiKey = getApiKeyFromHead(request.getHeadBytes());
 		if (StringUtils.isEmpty(apiKey)) {
-			apiKey = getApiIdFromBody(request.getBodyBytes());
+			apiKey = getApiKeyFromBody(request.getBodyBytes());
 		}
 		
 		return apiKey;
@@ -150,9 +150,9 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 	}
 	
 	
-	protected abstract String getApiIdFromHead(byte[] head);
+	protected abstract String getApiKeyFromHead(byte[] head);
 	
-	protected abstract String getApiIdFromBody(byte[] body);
+	protected abstract String getApiKeyFromBody(byte[] body);
 	
 	protected abstract byte[] preApiExecute(Session session, HeadBodyRequest request);
     

@@ -36,7 +36,7 @@ public class BodyLengthHeadServerHandler extends ServerHandlerListenerAdapter {
 	}
 	
 	@Override
-	public String getApiIdFromBody(byte[] body) {
+	public String getApiKeyFromBody(byte[] body) {
 		return new String(Arrays.copyOfRange(body, apiIdFieldOffsetOnBody, (apiIdFieldOffsetOnBody + apiIdFieldLengthOnBody)), getCharset()).trim();
 	}
 }

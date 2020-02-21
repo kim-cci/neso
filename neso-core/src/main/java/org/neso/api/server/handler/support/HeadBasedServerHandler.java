@@ -48,7 +48,7 @@ public class HeadBasedServerHandler extends ServerHandlerListenerAdapter {
 	}
 	
 	@Override
-	public String getApiIdFromHead(byte[] head) {
+	public String getApiKeyFromHead(byte[] head) {
 		return new String(Arrays.copyOfRange(head, apiIdFieldOffset, (apiIdFieldOffset + apiIdFieldLength)), getCharset()).trim();
 	}
 }

@@ -67,12 +67,12 @@ public class ServerHandlerAdapter extends ServerHandler {
     }
     
 	@Override
-	protected String getApiIdFromHead(byte[] head) {
+	protected String getApiKeyFromHead(byte[] head) {
 		return StringUtil.EMPTY_STRING;
 	}
 
 	@Override
-	protected String getApiIdFromBody(byte[] body) {
+	protected String getApiKeyFromBody(byte[] body) {
 		return StringUtil.EMPTY_STRING;
 	}
 
