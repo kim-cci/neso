@@ -18,13 +18,13 @@ public class InheritanceServerHandler extends ServerHandler {
 	}
 
 	@Override
-	protected String getApiIdFromHead(byte[] head) {
+	protected String getApiKeyFromHead(byte[] head) {
 		// TODO head에서 api식별자 추출
 		return null;
 	}
 
 	@Override
-	protected String getApiIdFromBody(byte[] body) {
+	protected String getApiKeyFromBody(byte[] body) {
 		// TODO body에서 api식별자 추출
 		return null;
 	}
