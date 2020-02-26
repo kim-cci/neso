@@ -24,7 +24,11 @@ public class SingleApiServerHandler extends ServerHandlerListenerAdapter {
 	
 	@Override
 	public int getBodyLength(HeadRequest request) {
-		return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), 0, getHeadLength())));
+		try {
+			return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), 0, getHeadLength())));
+		} catch (Exception e) {
+			throw new RuntimeException("invalid body length from head", e);
+		}
 	}
 	
 	@Override

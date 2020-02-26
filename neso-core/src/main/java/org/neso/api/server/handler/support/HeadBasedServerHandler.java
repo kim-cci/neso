@@ -44,7 +44,11 @@ public class HeadBasedServerHandler extends ServerHandlerListenerAdapter {
 
 	@Override
 	public int getBodyLength(HeadRequest request) {
-		return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), bodyLengthFiledOffset, (bodyLengthFiledOffset  + bodyLengthFiledLength))));
+		try {
+			return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), bodyLengthFiledOffset, (bodyLengthFiledOffset  + bodyLengthFiledLength))));
+		} catch (Exception e) {
+			throw new RuntimeException("invalid body length from head", e);
+		}
 	}
 	
 	@Override

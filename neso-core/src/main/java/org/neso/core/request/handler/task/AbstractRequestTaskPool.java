@@ -1,5 +1,6 @@
 package org.neso.core.request.handler.task;
 
+import org.neso.core.netty.ByteBasedWriter;
 import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.support.RequestRejectListener;
@@ -31,7 +32,11 @@ public abstract class AbstractRequestTaskPool implements RequestTaskPool {
 					logger.error("occurred requestRejectListner's onRequestReject", e);
 				}
 			}
-			client.write(rejectMessage);
+			
+			ByteBasedWriter writer = client.getWriter();
+			writer.write(rejectMessage);
+			writer.flush();
+			writer.close();
 		} else {
 			logger.debug("request is registered in the request pool");
 		}

@@ -1,7 +1,6 @@
 package org.neso.core.netty;
 
 import org.neso.core.request.Client;
-import org.neso.core.request.factory.RequestFactory;
 import org.neso.core.request.handler.RequestHandler;
 import org.neso.core.request.internal.OperableHeadBodyRequest;
 import org.slf4j.Logger;
@@ -10,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-public class HeadBodyRequestReader implements ByteLengthBasedReader {
+public class HeadBodyReader implements ByteLengthBasedReader {
 	
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -20,15 +19,13 @@ public class HeadBodyRequestReader implements ByteLengthBasedReader {
 	
 	private OperableHeadBodyRequest currentRequest;
 	
-	private boolean makeAbleRequest = true;
+	private boolean readable = true;
 	
-	private RequestFactory requestFactory;
 	
-	public HeadBodyRequestReader(RequestHandler requestHandler, RequestFactory requestFactory, Client client) {
+	public HeadBodyReader(RequestHandler requestHandler, Client client) {
     	this.requestHandler = requestHandler;
-    	this.requestFactory = requestFactory;
     	this.client = client;
-    	this.currentRequest =  requestFactory.newHeadBodyRequest(client, requestHandler);
+    	this.currentRequest =  requestHandler.getRequestFactory().newHeadBodyRequest(client, requestHandler);
     	init();
 	}
 	
@@ -41,13 +38,16 @@ public class HeadBodyRequestReader implements ByteLengthBasedReader {
 	
 	@Override
 	public void close() {
+		if (client.isConnected()) {
+			client.disconnect();
+		}
 		requestHandler.onDisConnect(client);
 	}
     
     
     @Override
     public int getToReadByte() {
-    	if (!makeAbleRequest) {
+    	if (!readable) {
     		return 0;
     	}
     	
@@ -67,7 +67,6 @@ public class HeadBodyRequestReader implements ByteLengthBasedReader {
     @Override
     public boolean onRead(ByteBuf readedBuf) throws Exception {
     	
-
 		if (!currentRequest.isReadedHead()) {
 			currentRequest.setHeadBytes(readedBuf);
 			
@@ -91,10 +90,10 @@ public class HeadBodyRequestReader implements ByteLengthBasedReader {
     		
     		requestHandler.onRequest(client, currentRequest);
     		
-    		if (requestHandler.isRepeatableRequest()) {
-    			this.currentRequest = requestFactory.newHeadBodyRequest(client, requestHandler);
+    		if (requestHandler.getRequestFactory().isRepeatableReceiveRequest()) {
+    			this.currentRequest = requestHandler.getRequestFactory().newHeadBodyRequest(client, requestHandler);
 			} else {
-				makeAbleRequest = false;
+				readable = false;
 			}
         	
         	return true;

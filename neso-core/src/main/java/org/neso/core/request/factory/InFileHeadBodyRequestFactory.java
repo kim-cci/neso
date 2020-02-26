@@ -4,7 +4,7 @@ import org.neso.core.request.Client;
 import org.neso.core.request.handler.RequestHandler;
 import org.neso.core.request.internal.OperableHeadBodyRequest;
 
-public class InFileHeadBodyRequestFactory implements RequestFactory {
+public class InFileHeadBodyRequestFactory extends AbstractRequestFactory {
 
 	String rootPath = null;
 	

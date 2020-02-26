@@ -35,7 +35,7 @@ public class Server {
 	private int readTimeoutMillis = -1;
 	private int readTimeoutMillisOnRead = -1;
 	
-	private int writeTimeoutMillis = - 1;
+	private int writeTimeoutMillis = 2000;
 	
 	
 	private LogLevel logLevel = null;
@@ -70,7 +70,7 @@ public class Server {
     }
     
     public Server readTimeoutMillis(int readTimeoutMillis) {
-    	if (requestHandler.isRepeatableRequest()) {	//접속 유지형은 사용불가..
+    	if (requestHandler.getRequestFactory().isRepeatableReceiveRequest()) {	//접속 유지형은 사용불가..
     		logger.warn("invalid option ");
     	} else {
     		this.readTimeoutMillis = readTimeoutMillis;
@@ -89,6 +89,10 @@ public class Server {
     }
 
     public Server writeTimeoutMillis(int writeTimeoutMillis) {
+    	
+    	if (writeTimeoutMillis < 0) {
+    		throw new RuntimeException("writeTimeoutMillis is bigger than zero");
+    	}
     	this.writeTimeoutMillis = writeTimeoutMillis;
     	return this;
     }

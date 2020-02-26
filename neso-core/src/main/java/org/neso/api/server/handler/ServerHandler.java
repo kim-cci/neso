@@ -7,9 +7,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.neso.api.Api;
 import org.neso.core.exception.ApiNotFoundException;
 import org.neso.core.exception.ClientAbortException;
+import org.neso.core.netty.ByteBasedWriter;
 import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.Session;
+import org.neso.core.request.factory.InMemoryRequestFactory;
 import org.neso.core.request.handler.AbstractRequestHandler; 
 import org.neso.core.request.handler.task.RequestTaskThreadPool; 
 import org.slf4j.Logger;
@@ -30,7 +32,7 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 	public ServerHandler(int headerLength, int maxThreads) {
 		super(headerLength);
 		setRequestTaskPool(new RequestTaskThreadPool(maxThreads));
-		setRepeatableRequest(false);
+		setRequestFactory(new InMemoryRequestFactory(false));
 	}
 
 	@Override
@@ -93,27 +95,38 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 	@Override
 	final public void doRequest(Client client, HeadBodyRequest request) throws Exception {
 		
-		Api exeucteApi = request.getAttribute(MATCH_API_ATTR_NAME);
-		if (exeucteApi == null) {
-			throw new ApiNotFoundException(request, null);
-		}
-  
-		byte[] response = preApiExecute(client, request);
-			
-		if (response == null) {
-			response = exeucteApi.handle(request);
-
-			byte[] postR = postApiExecute(client, request, response);
-			if (postR != null) {
-				response = postR;
+		if (client.isConnected()) {
+			Api exeucteApi = request.getAttribute(MATCH_API_ATTR_NAME);
+			if (exeucteApi == null) {
+				throw new ApiNotFoundException(request, null);
 			}
-		}
- 
-		try {
-			client.write(response == null ? new byte[0] : response);
-		} catch (ClientAbortException cae) {
-			//정상 응답 write가 지연될 경우 예외 발생
-			onExceptionRequestIO(client, cae);	
+	  
+			byte[] response = preApiExecute(client, request);
+				
+			if (response == null) {
+				response = exeucteApi.handle(request);
+
+				byte[] postR = postApiExecute(client, request, response);
+				if (postR != null) {
+					response = postR;
+				}
+			}
+	 
+			try {
+				ByteBasedWriter writer = client.getWriter();
+				writer.write(response == null ? new byte[0] : response);
+			
+				if (getRequestFactory().isRepeatableReceiveRequest()) {
+					writer.close();
+				} else {
+					writer.closeAndDisconnect();
+				}
+			} catch (ClientAbortException cae) {
+				//정상 응답 write가 지연될 경우 예외 발생
+				onExceptionRequestIO(client, cae);	
+			}
+		} else {
+			throw new ClientAbortException(client);
 		}
 	}
 
@@ -130,7 +143,10 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 		if (errorMessage == null) {
 			errorMessage = "read/write error".getBytes();
 		}
-		client.write(errorMessage, true);
+
+		ByteBasedWriter writer = client.getWriter();
+		writer.write(errorMessage);
+		writer.closeAndDisconnect();
 	}
 	
 	@Override
@@ -146,7 +162,15 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 		if (errorMessage == null) {
 			 errorMessage = "server error".getBytes();
 		}
-		client.write(errorMessage);
+		
+		ByteBasedWriter writer = client.getWriter();
+		writer.write(errorMessage);
+		
+		if (getRequestFactory().isRepeatableReceiveRequest()) {
+			writer.close();
+		} else {
+			writer.closeAndDisconnect();
+		}
 	}
 	
 	

@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.HeadRequest;
+import org.neso.core.request.factory.RequestFactory;
 import org.neso.core.request.handler.task.RequestTaskPool;
 import org.neso.core.server.ServerContext;
 
@@ -13,8 +14,8 @@ public interface RequestHandler {
 	public Charset getCharset();
 
 	public RequestTaskPool getRequestTaskPool();
-
-	public boolean isRepeatableRequest();
+	
+	public RequestFactory getRequestFactory();
 	
 	public void init(ServerContext context);
 	
