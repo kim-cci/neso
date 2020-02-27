@@ -1,8 +1,6 @@
 package org.neso.sample.chapter5;
 
 
-import io.netty.handler.logging.LogLevel;
-
 import java.util.Arrays;
 
 import org.neso.api.server.handler.ServerHandler;
@@ -20,7 +18,7 @@ public class ServerTest {
 			return response; 
 		
 		});
-		sh.setRepeatableReceiveRequest(true);
-		new Server(sh, 10001).loggingLevel(LogLevel.DEBUG).start();
+		//sh.setRepeatableReceiveRequest(true);
+		new Server(sh, 10001).readTimeoutMillisOnReadStatus(3000).start();
 	}
 }

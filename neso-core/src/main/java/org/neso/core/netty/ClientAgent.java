@@ -134,7 +134,9 @@ public class ClientAgent implements Client {
     		
             	if (sc.isOpen()) {
             		sc.close();
-            		logger.debug("성공");
+            		logger.debug("접속 종료");
+            	} else {
+            		logger.debug("이미 닫혔음");
             	}
     		} else {
     			logger.debug("아직 완료되지 않은 쓰기 작업으로 인해 접속 종료 보류..");
@@ -201,7 +203,6 @@ public class ClientAgent implements Client {
 									Bbw.this.writeFailProc(ClientAgent.this, t);
 								}
 							}
-							
 						}
 					}, writeTimeoutMillis, TimeUnit.MICROSECONDS);
 					
@@ -248,10 +249,8 @@ public class ClientAgent implements Client {
  
 
 		private void writeFailProc(Client client, Throwable t) {
-			logger.debug("writeFailProc {}, {}", client.isConnected(), writable.get());
-			logger.debug("writeFailProc2 ", t);
 			if (client.isConnected() && writable.get()) {
-				requestHandler.onExceptionRequestIO(client, t);
+				requestHandler.onExceptionWrite(client, t);
 			}
 		}
 

@@ -10,11 +10,11 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.concurrent.GenericFutureListener;
 
 import java.util.concurrent.TimeUnit;
 
+import org.neso.core.netty.AsyncCloseReadTimeoutHandler;
 import org.neso.core.netty.ByteLengthBasedInboundHandler;
 import org.neso.core.netty.ClientAgent;
 import org.neso.core.request.handler.RequestHandler;
@@ -184,6 +184,8 @@ public class Server {
     
     protected void initializerAccept(SocketChannel sc) {
     	
+    	ClientAgent clientAgent = new ClientAgent(sc, context, writeTimeoutMillis);
+    	
 		ChannelPipeline cp = sc.pipeline();
 		if (connectionManagerHandler != null) {
 			cp.addLast(connectionManagerHandler); //1.접속 제한
@@ -195,13 +197,13 @@ public class Server {
 		
 		
 		if (readTimeoutMillis > 0) {
-			cp.addLast(new ReadTimeoutHandler(readTimeoutMillis, TimeUnit.MILLISECONDS));//3.리드 타임아웃
+			cp.addLast(new AsyncCloseReadTimeoutHandler(readTimeoutMillis, TimeUnit.MILLISECONDS, clientAgent.getByteLengthBasedReader()));//3.리드 타임아웃
 		}
 		
 	
-		ClientAgent clientAgent = new ClientAgent(sc, context, writeTimeoutMillis);
 		
-		cp.addLast(new ByteLengthBasedInboundHandler(clientAgent.getByteLengthBasedReader(), readTimeoutMillisOnRead)); //4. READ 처리
+		
+		cp.addLast("ByteLengthBasedInboundHandler", new ByteLengthBasedInboundHandler(clientAgent.getByteLengthBasedReader(), readTimeoutMillisOnRead)); //4. READ 처리
     }
     
     protected void option(ServerBootstrap sb) {

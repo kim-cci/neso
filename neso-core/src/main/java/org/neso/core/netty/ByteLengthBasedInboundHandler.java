@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.ReferenceCountUtil;
 
 
@@ -62,6 +61,11 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
 		        
 		    	while (buf.isReadable()) {
 		    		
+		    		if (toReadBuf.writableBytes() == 0) {
+		    			byte[] overBytes = BufUtils.copyToByteArray(buf);
+    		    		throw new OverReadBytesException(overBytes);
+		    		}
+		    		
 		    		if (isCompleteReadBuf(buf, toReadBuf)) {
 
 		    			if (reader.onRead(toReadBuf.copy())){
@@ -72,19 +76,12 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
 		    				//request의 리드가 아직 남았다면..
 		    				addReadTimeoutHandler(ctx);
 		    			}
-		    			 
 			    			 
                     	int toReadBytes = reader.getToReadByte();
-                    	if (toReadBytes == 0) {
-                    		if (buf.isReadable()) {
-                    			byte[] overBytes = BufUtils.copyToByteArray(buf);
-            		    		throw new OverReadBytesException(overBytes);
-                    		}
-                    
-                    	} else {
-                    		toReadBuf.clear();
-                    		toReadBuf.capacity(reader.getToReadByte());
-                    	}
+                    	logger.debug("toReadBytes length => {}", toReadBytes);
+                    	toReadBuf.clear();
+                		toReadBuf.capacity(toReadBytes);
+        
 	                    
 		    		} else {
 		    			//입력받은 byte가 부족하다면.. toReadBuf가 아직 덜 찼다면...
@@ -101,7 +98,7 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     
     private void addReadTimeoutHandler(ChannelHandlerContext ctx) {
     	if (readTimeoutMillisOnRead > 0 && ctx.channel().pipeline().get("readTimeoutOnReadHandler") == null) {
-			ctx.channel().pipeline().addLast("readTimeoutOnReadHandler", new ReadTimeoutHandler(readTimeoutMillisOnRead, TimeUnit.MILLISECONDS));
+    		ctx.channel().pipeline().addBefore("ByteLengthBasedInboundHandler", "readTimeoutOnReadHandler", new AsyncCloseReadTimeoutHandler(readTimeoutMillisOnRead, TimeUnit.MILLISECONDS, reader));
 		}
     }
     

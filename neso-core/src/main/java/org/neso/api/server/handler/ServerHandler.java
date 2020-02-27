@@ -121,23 +121,24 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 				logger.error("write exception...");
 			}
 		} else {
-			onExceptionRequestIO(client, new ClientAbortException(client));
+			onExceptionWrite(client, new ClientAbortException(client));
 		}
 	}
 
 	@Override
-	final public void onExceptionRequestIO(Client client, Throwable exception) {
-		logger.debug("onExceptionRequestIO 예외 발생 connect =" + client.isConnected(), exception);
+	final public void onExceptionRead(Client client, Throwable t) {
+		
+		logger.debug("onExceptionRead occured", t);
 		if (client.isConnected()) {
 			byte[] errorMessage = null;
 			try {
-				errorMessage = exceptionCaughtRequestIO(client, exception);
+				errorMessage = exceptionCaughtRequestIO(client, t);
 
 			} catch (Exception e) {
 				logger.error("occurred serverHandler's exceptionCaughtRequestIO ");
 			}
 			if (errorMessage == null) {
-				errorMessage = "read/write error".getBytes();
+				errorMessage = "read error".getBytes();
 			}
 
 			ByteBasedWriter writer = client.getWriter();
@@ -149,8 +150,24 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 	}
 	
 	@Override
+	final public void onExceptionWrite(Client client, Throwable exception) {
+		logger.debug("onExceptionWrite occured", exception);
+		if (client.isConnected()) {
+			 
+			try {
+				exceptionCaughtRequestIO(client, exception);
+				
+			} catch (Exception e) {
+				logger.error("occurred serverHandler's exceptionCaughtRequestIO ");
+			}
+			client.disconnect();
+		}
+	}
+	
+	@Override
 	final public void onExceptionDoRequest(Client client, HeadBodyRequest request, Throwable exception) {
 		
+		logger.debug("onExceptionDoRequest occured", exception);
 		
 		byte[] errorMessage = null;
 		try {

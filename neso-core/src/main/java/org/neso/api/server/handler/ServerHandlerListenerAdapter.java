@@ -1,15 +1,12 @@
 package org.neso.api.server.handler;
 
-import java.util.Arrays;
-
 import org.neso.api.server.handler.listener.ListenerExceptionCaughtRequestExecute;
 import org.neso.api.server.handler.listener.ListenerExceptionCaughtRequestIO;
 import org.neso.api.server.handler.listener.ListenerPostApiExecute;
 import org.neso.api.server.handler.listener.ListenerPreApiExecute;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 public abstract class ServerHandlerListenerAdapter extends ServerHandlerAdapter {
 
@@ -17,9 +14,6 @@ public abstract class ServerHandlerListenerAdapter extends ServerHandlerAdapter 
 		super(headerLength);
 	}
 
-
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	
 
 	private ListenerExceptionCaughtRequestExecute listenerExceptionCaughtApiExecute;
 	final public ServerHandlerListenerAdapter attachListenerExceptionCaughtApiExecute(ListenerExceptionCaughtRequestExecute l) {
@@ -30,7 +24,6 @@ public abstract class ServerHandlerListenerAdapter extends ServerHandlerAdapter 
 	@Override
 	protected byte[] exceptionCaughtDoRequest(Session session, HeadBodyRequest request, Throwable exception) {
 		if (listenerExceptionCaughtApiExecute == null) {
-			logger.debug("exceptionCaughtApiExecute occured !! request -> [{}]", Arrays.toString(request.getAllBytes()), exception);
 			return "server error".getBytes();
 		} else {
 			return listenerExceptionCaughtApiExecute.event(session, request, exception);
@@ -47,7 +40,6 @@ public abstract class ServerHandlerListenerAdapter extends ServerHandlerAdapter 
 	@Override
 	protected byte[] exceptionCaughtRequestIO(Session session, Throwable exception) {
 		if (listenerExceptionCaughtRequestIO == null) {
-			logger.debug("exceptionCaughtRequestIO occured !! clinet ip -> [{}]", session.getRemoteAddr(), exception);
 			return "read/write error".getBytes();
 		} else {
 			return listenerExceptionCaughtRequestIO.event(session, exception);

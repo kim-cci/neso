@@ -68,18 +68,23 @@ public interface RequestHandler {
      * 요청처리중 예외가 발생하면 호출
      * @param request 예외가 발생한 request
      * @param exception
-     * @return 클라이언트에게 내려줄 응답 byte array
      */
     public void onExceptionDoRequest(Client client, HeadBodyRequest request, Throwable exception);
 
     /**
-     * 클라이언트로와 I/O 처리 중 예외가 발생하면 호출된다.
+     * 클라이언트로와 read 처리 중 예외가 발생하면 호출된다.
      * 
-     * call by I/O 입출력 스레드
      * @param client 예외가 발생한 client
      * @param exception
-     * @return 클라이언트에게 내려줄 응답 byte array
      */
-    public void onExceptionRequestIO(Client client, Throwable exception);
+    public void onExceptionRead(Client client, Throwable exception);
+    
+    /**
+     * 클라이언트로와 write 처리 중 예외가 발생하면 호출된다.
+     * 
+     * @param client 예외가 발생한 client
+     * @param exception
+     */
+    public void onExceptionWrite(Client client, Throwable exception);
 
 }
