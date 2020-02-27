@@ -5,11 +5,15 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.timeout.WriteTimeoutException;
+import io.netty.util.concurrent.ScheduledFuture;
 
 import java.net.InetSocketAddress;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.neso.core.exception.ClientAbortException;
@@ -32,18 +36,12 @@ public class ClientAgent implements Client {
 	final private SocketChannel sc;
 	
 	final ByteLengthBasedReader headBodyRequestReader;
-	final ByteBasedWriter write;
+	final Bbw writer;
 	final private RequestHandler requestHandler;
-	 
 
-    /**
-     * writeClose일 경우, write는 비동기로 처리되고 write완료 시점에 close처리됨, close되지 않은 상황에 다른 스레드가 write처리를 하면 2번 응답을 받게 된다
-     * 따라서. writeClose인 경우, 추가적으로 응답을 내려주지 않게 serverCloseProc 플래그 둠
-     * 
-     * ==> 변경 됨, write 비동기 처리 -> 동기처리로, writeTimeoutMillis 필수 
-     * 이방법이 심플하고 안정적일듯
-     */
-    private volatile boolean serverCloseProc;
+    final private boolean reWritable;
+    private AtomicBoolean writable = new AtomicBoolean(true);
+    private AtomicBoolean close = new AtomicBoolean(false);
     
     private Map<String, Object> sessionAttrMap = new LinkedHashMap<String, Object>();
     
@@ -64,11 +62,12 @@ public class ClientAgent implements Client {
     		throw new RuntimeException("writeTimeoutMillis is bigger than zero");
     	}
     	this.writeTimeoutMillis = writeTimeoutMillis;
-    	this.serverCloseProc = false;
+    	
     	this.requestHandler = serverContext.getRequestHandler(); 
     	
+    	this.reWritable = this.requestHandler.getRequestFactory().isRepeatableReceiveRequest();
     	this.headBodyRequestReader = new HeadBodyReader(requestHandler, this);
-    	this.write = new Bbw();
+    	this.writer = new Bbw();
 	}
 	
 	public ByteLengthBasedReader getByteLengthBasedReader() {
@@ -116,41 +115,55 @@ public class ClientAgent implements Client {
     
     @Override
     public boolean isConnected() {
-    	return !serverCloseProc && sc.isOpen();
+    	return sc.isOpen() && !close.get();
     }
     
     @Override
     public void disconnect() {
     	
-    	logger.debug("획득 시도합니다1");
+    	logger.debug("disconnect 획득 시도");
     	lock.lock();
-    	logger.debug("획득 했습니다1.");
+    	logger.debug("disconnect 획득");
     	
-    	logger.debug("접속을 끊습니다.");
+    	
     	try {
-    		serverCloseProc = true;
-        	if (sc.isOpen()) {
-        		sc.close();
-        		logger.debug("접속을 끊음");
-        	}
+    		close.set(true);
+    		
+    		if (writer.isTerminated()) {
+    			logger.debug("접속 종료 시도..");
+    		
+            	if (sc.isOpen()) {
+            		sc.close();
+            		logger.debug("성공");
+            	}
+    		} else {
+    			logger.debug("아직 완료되지 않은 쓰기 작업으로 인해 접속 종료 보류..");
+    			return;
+    		}
+
         	
     	} finally {
-    		logger.debug("반환 시도합니다1.");
+    		logger.debug("disconnect 반환");
 			lock.unlock();
-			logger.debug("반환했습니다1.");
     	}
     }
     
     public ByteBasedWriter getWriter() {
-    	logger.debug("획득 시도합니다");
+    	logger.debug("writer 획득 시도");
     	lock.lock();
-    	logger.debug("획득 했습니다.");
-    	return write;
+    	logger.debug("writer 획득");
+    	return writer;
     }
     
     
     public class Bbw implements ByteBasedWriter {
-
+    	
+    	private AtomicInteger writeTaskCount = new AtomicInteger(0);
+    	
+    	public boolean isTerminated() {
+    		return !(writeTaskCount.get() > 0);
+    	}
+    	
 		@Override
 		public void write(byte[] bytes) {
 			ByteBufAllocator alloc = sc.alloc();
@@ -162,27 +175,54 @@ public class ClientAgent implements Client {
 		@Override
 		public void write(ByteBuf buf) {
  
-			if (isConnected()) {
+			if (isConnected() && writable.get()) {
 				
 				try {
-					logger.debug("응답 보냅니다.");
+					logger.debug("응답 쓰기 시작");
 					
+					final ChannelFuture cf = sc.writeAndFlush(buf);
+					writeTaskCount.incrementAndGet();
 					
-					sc.write(buf).addListener(new ChannelFutureListener() {
+					final ScheduledFuture<?> sf = sc.eventLoop().schedule(new Runnable() {
+						
+						@Override
+						public void run() {
+							logger.debug("스케쥴된 스레드 실행");
+							if (!cf.isDone()) {
+								try {
+									int cnt = writeTaskCount.decrementAndGet();
+									logger.debug("ScheduledFuture... write cnt = {}", cnt);
+									if (cnt < 1 && close.get()) {
+										disconnect();
+									}
+									
+									Bbw.this.writeFailProc(ClientAgent.this, WriteTimeoutException.INSTANCE);
+								} catch (Throwable t) {
+									Bbw.this.writeFailProc(ClientAgent.this, t);
+								}
+							}
+							
+						}
+					}, writeTimeoutMillis, TimeUnit.MICROSECONDS);
+					
+					cf.addListener(new ChannelFutureListener() {
 						
 						@Override
 						public void operationComplete(ChannelFuture future) throws Exception {
-							logger.debug("응답이 {}했습니다." , (future.isSuccess() ? "성공" : "실패"));
+							sf.cancel(false);
+							int cnt = writeTaskCount.decrementAndGet();
+							logger.debug("Write Channel Listener... write cnt = {}", cnt);
+							if (cnt < 1 && close.get()) {
+								disconnect();
+							}
 							
-                            if (!future.isSuccess()) {
-                                requestHandler.onExceptionRequestIO(ClientAgent.this, future.cause());
-                            }
-                            
-                            if (serverCloseProc) {
-                            	disconnect();
-                            }
+							logger.debug("응답에 {} 했습니다", (future.isSuccess() ? "성공" : "실패"));
+							
+							if (!future.isSuccess()) {
+								Bbw.this.writeFailProc(ClientAgent.this, future.cause());
+							}
 						}
-					}).get(writeTimeoutMillis, TimeUnit.MILLISECONDS);
+					});
                     
 					logger.debug("응답 요청했습니다.");
 				} catch (Exception e) {
@@ -190,74 +230,39 @@ public class ClientAgent implements Client {
 				}
     			
         	} else {
-        		logger.debug("응답을 보내려고 했지만 이미 닫혔습니다. {}, {}", serverCloseProc, sc.isOpen());
-        		if (!serverCloseProc && !sc.isOpen()) {
-        			throw new ClientAbortException(ClientAgent.this);
+        		logger.debug("쓰기 불가. {}, {}, {}", sc.isOpen(), close, writable);
+        		if (writable.get()) {
+        			if (!close.get()) {
+        				if (!sc.isOpen()) {
+        					throw new ClientAbortException(ClientAgent.this);
+        				}
+        			} else {
+        				logger.info("이미 접속 종료 처리");
+        			}
+        		} else {
+        			logger.info("이미 응답처리를 완료하였습니다.");
         		}
         	}
 			
 		}
  
 
-		@Override
-		public void flush() {
-			sc.flush();
+		private void writeFailProc(Client client, Throwable t) {
+			logger.debug("writeFailProc {}, {}", client.isConnected(), writable.get());
+			logger.debug("writeFailProc2 ", t);
+			if (client.isConnected() && writable.get()) {
+				requestHandler.onExceptionRequestIO(client, t);
+			}
 		}
 
 		@Override
 		public void close() {
-			sc.flush();
-			logger.debug("반환 시도합니다.4");
+			if (!reWritable) {
+				writable.compareAndSet(true, false);
+				disconnect();
+			}
+			logger.debug("writer 반환");
 			lock.unlock();
-			logger.debug("반환했습니다.4");
-		}
-		
-		@Override
-		public void closeAndDisconnect(){
-			sc.flush();
-			serverCloseProc = true;
-			logger.debug("반환 시도합니다.3");
-			lock.unlock();
-			logger.debug("반환 했습니다.3");
 		}
     }
 }
-
-//
-//@Override
-//public void write(ByteBuf buf) {
-//
-//	if (isConnected()) {
-//		
-//		try {
-//			logger.debug("응답 보냅니다.");
-//			sc.write("").get(timeout, unit)
-//			sc.write(buf).addListener(new ChannelFutureListener() {
-//				
-//				@Override
-//				public void operationComplete(ChannelFuture future) throws Exception {
-//					logger.debug("응답이 {}했습니다." , (future.isSuccess() ? "성공" : "실패"));
-//					
-//                    if (!future.isSuccess()) {
-//                        requestHandler.onExceptionRequestIO(ClientAgent.this, future.cause());
-//                    }
-//                    
-//                    if (serverCloseProc) {
-//                    	disconnect();
-//                    }
-//				}
-//			});
-//            
-//			logger.debug("응답 요청했습니다.");
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		
-//	} else {
-//		logger.debug("응답을 보내려고 했지만 이미 닫혔습니다. {}, {}", serverCloseProc, sc.isOpen());
-//		if (!serverCloseProc && !sc.isOpen()) {
-//			throw new ClientAbortException(ClientAgent.this);
-//		}
-//	}
-//	
-//}

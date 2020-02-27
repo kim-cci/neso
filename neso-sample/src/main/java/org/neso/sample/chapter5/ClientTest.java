@@ -19,14 +19,16 @@ public class ClientTest {
 			sb.append("AAAAAAFAAAAABAGGZATJAAABAAEAAA1"); //바디길이는 30 바이트 
 			socket.getOutputStream().write(sb.toString().getBytes()); 
 			socket.getOutputStream().flush(); 
-			
+			 
 			byte[] responseBytes = new byte[1]; 
+
 			while(socket.getInputStream().read(responseBytes) > -1) {
 				System.out.print(new String(responseBytes)); 
 			}
-			//socket.getInputStream().read(responseBytes); 
-			
-		 
+//			socket.getInputStream().read(responseBytes);
+//			System.out.print(new String(responseBytes)); 
+//			
+			 
 		}
 
 		socket.close(); 

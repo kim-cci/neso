@@ -115,38 +115,37 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 			try {
 				ByteBasedWriter writer = client.getWriter();
 				writer.write(response == null ? new byte[0] : response);
-			
-				if (getRequestFactory().isRepeatableReceiveRequest()) {
-					writer.close();
-				} else {
-					writer.closeAndDisconnect();
-				}
-			} catch (ClientAbortException cae) {
-				//정상 응답 write가 지연될 경우 예외 발생
-				onExceptionRequestIO(client, cae);	
+				writer.close();
+				
+			} catch (Exception e) {
+				logger.error("write exception...");
 			}
 		} else {
-			throw new ClientAbortException(client);
+			onExceptionRequestIO(client, new ClientAbortException(client));
 		}
 	}
 
 	@Override
 	final public void onExceptionRequestIO(Client client, Throwable exception) {
-		
-		byte[] errorMessage = null;
-		try {
-			errorMessage = exceptionCaughtRequestIO(client, exception);
+		logger.debug("onExceptionRequestIO 예외 발생 connect =" + client.isConnected(), exception);
+		if (client.isConnected()) {
+			byte[] errorMessage = null;
+			try {
+				errorMessage = exceptionCaughtRequestIO(client, exception);
 
-		} catch (Exception e) {
-			logger.error("occurred serverHandler's exceptionCaughtRequestIO ");
-		}
-		if (errorMessage == null) {
-			errorMessage = "read/write error".getBytes();
-		}
+			} catch (Exception e) {
+				logger.error("occurred serverHandler's exceptionCaughtRequestIO ");
+			}
+			if (errorMessage == null) {
+				errorMessage = "read/write error".getBytes();
+			}
 
-		ByteBasedWriter writer = client.getWriter();
-		writer.write(errorMessage);
-		writer.closeAndDisconnect();
+			ByteBasedWriter writer = client.getWriter();
+			writer.write(errorMessage);
+			writer.close();
+			
+			client.disconnect();
+		}
 	}
 	
 	@Override
@@ -165,12 +164,7 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 		
 		ByteBasedWriter writer = client.getWriter();
 		writer.write(errorMessage);
-		
-		if (getRequestFactory().isRepeatableReceiveRequest()) {
-			writer.close();
-		} else {
-			writer.closeAndDisconnect();
-		}
+		writer.close();
 	}
 	
 	

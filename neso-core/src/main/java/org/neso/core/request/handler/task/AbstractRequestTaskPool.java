@@ -35,7 +35,6 @@ public abstract class AbstractRequestTaskPool implements RequestTaskPool {
 			
 			ByteBasedWriter writer = client.getWriter();
 			writer.write(rejectMessage);
-			writer.flush();
 			writer.close();
 		} else {
 			logger.debug("request is registered in the request pool");

@@ -20,7 +20,7 @@ public class ServerTest {
 			return response; 
 		
 		});
-		//sh.setRepeatableReceiveRequest(true);
+		sh.setRepeatableReceiveRequest(true);
 		new Server(sh, 10001).loggingLevel(LogLevel.DEBUG).start();
 	}
 }
