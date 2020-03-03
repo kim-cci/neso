@@ -111,9 +111,14 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 					response = postR;
 				}
 			}
-	 
+			
 			try {
 				ByteBasedWriter writer = client.getWriter();
+				
+//				for (byte b : response) {  //TO TEST
+//					writer.write(b);
+//				}
+				
 				writer.write(response == null ? new byte[0] : response);
 				writer.close();
 				

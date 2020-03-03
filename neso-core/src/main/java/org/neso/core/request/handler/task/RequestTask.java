@@ -1,7 +1,5 @@
 package org.neso.core.request.handler.task;
 
-import java.util.Date;
-
 import org.neso.core.request.Client;
 import org.neso.core.request.handler.AbstractRequestHandler;
 import org.neso.core.request.internal.OperableHeadBodyRequest;
@@ -25,9 +23,9 @@ public class RequestTask implements Runnable {
 	}
 		 
 	public void run() {
-		logger.debug("request task start.. {}", new Date());
+		logger.debug("request task start..");
 		
-		long taskStartTime = System.nanoTime();
+		long startTime = System.currentTimeMillis();//System.nanoTime();
 		
 		try {
 			requestHandler.doRequest(client, request);
@@ -44,10 +42,11 @@ public class RequestTask implements Runnable {
 			
 		} finally {
 			
-			long elapsedTime = System.nanoTime() - taskStartTime;	//TODO //지연 리스터 처리
-			elapsedTime = elapsedTime / 1000000;
-
-			logger.debug("request task end.. elapsedTime-> {} ms", elapsedTime);
+			long elapsedMilis = System.currentTimeMillis() - startTime; //System.nanoTime() - startTime;	
+			
+			//TODO //지연 리스터 처리 ?
+			
+			logger.debug("request task finished.. elapse time -> {}.{} sec", elapsedMilis / 1000, String.format("%03d", elapsedMilis % 1000));
 			request.release();
 		}
 	}

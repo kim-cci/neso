@@ -3,6 +3,7 @@ package org.neso.api.server.handler.support;
 import java.util.Arrays;
 
 import org.neso.api.server.handler.ServerHandlerListenerAdapter;
+import org.neso.core.exception.HeaderParsingException;
 import org.neso.core.request.HeadRequest;
 
 
@@ -47,12 +48,16 @@ public class HeadBasedServerHandler extends ServerHandlerListenerAdapter {
 		try {
 			return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), bodyLengthFiledOffset, (bodyLengthFiledOffset  + bodyLengthFiledLength))));
 		} catch (Exception e) {
-			throw new RuntimeException("invalid body length from head", e);
+			throw new HeaderParsingException("invalid body length", request.getHeadBytes(), e);
 		}
 	}
 	
 	@Override
 	public String getApiKeyFromHead(byte[] head) {
-		return new String(Arrays.copyOfRange(head, apiIdFieldOffset, (apiIdFieldOffset + apiIdFieldLength)), getCharset()).trim();
+		try {
+			return new String(Arrays.copyOfRange(head, apiIdFieldOffset, (apiIdFieldOffset + apiIdFieldLength)), getCharset()).trim();
+		} catch (Exception e) {
+			throw new HeaderParsingException("invalid api key", head, e);
+		}
 	}
 }

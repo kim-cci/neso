@@ -1,6 +1,8 @@
 package org.neso.core.support;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -9,7 +11,6 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.neso.core.netty.BufUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,9 +73,10 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter {
 			if (rejectMessage == null) {
 				ctx.close();
 			} else {
-				BufUtils.writeAndClose(ctx.channel(), rejectMessage);
+				ByteBuf buf = ctx.alloc().buffer(rejectMessage.length);
+				buf.writeBytes(rejectMessage);
+				ctx.writeAndFlush(buf).addListener(ChannelFutureListener.CLOSE);
 			}
-			
 		}
 	}
 	

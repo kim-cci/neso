@@ -76,7 +76,7 @@ public class HeadBodyReader implements ByteLengthBasedReader {
     	
     	readedBuf.resetReaderIndex();
     	
-    	logger.debug(dump.toString());
+    	logger.info(dump.toString());
     }
     
     @Override

@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.neso.api.Api;
 import org.neso.api.server.handler.ServerHandlerListenerAdapter;
+import org.neso.core.exception.HeaderParsingException;
 import org.neso.core.request.HeadRequest;
 
 /**
@@ -27,7 +28,7 @@ public class SingleApiServerHandler extends ServerHandlerListenerAdapter {
 		try {
 			return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), 0, getHeadLength())));
 		} catch (Exception e) {
-			throw new RuntimeException("invalid body length from head", e);
+			throw new HeaderParsingException("invalid body length", request.getHeadBytes(), e);
 		}
 	}
 	

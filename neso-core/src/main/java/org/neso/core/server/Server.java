@@ -97,7 +97,7 @@ public class Server {
     	return this;
     }
     
-    public Server loggingLevel(LogLevel level) {
+    public Server inoutLogLevel(LogLevel level) {
     	this.logLevel = level;
     	return this;
     }
