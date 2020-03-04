@@ -38,7 +38,9 @@ public class Server {
 	private int writeTimeoutMillis = 2000;
 	
 	
-	private LogLevel logLevel = null;
+	private LogLevel pipelineLogLevel = null;
+	
+	private boolean inoutLogging = true;
 	   
 	private ConnectionManagerHandler connectionManagerHandler = null;
     
@@ -97,12 +99,15 @@ public class Server {
     	return this;
     }
     
-    public Server inoutLogLevel(LogLevel level) {
-    	this.logLevel = level;
+    public Server pipeLineLogLevel(LogLevel level) {
+    	this.pipelineLogLevel = level;
     	return this;
     }
     
-	
+    public Server inoutLogging(boolean inoutLogging) {
+    	this.inoutLogging = inoutLogging;
+    	return this;
+    }
     
     public void start() {
     	
@@ -184,26 +189,26 @@ public class Server {
     
     protected void initializerAccept(SocketChannel sc) {
     	
-    	ClientAgent clientAgent = new ClientAgent(sc, context, writeTimeoutMillis);
+    	ClientAgent clientAgent = new ClientAgent(sc, context, writeTimeoutMillis, inoutLogging);
     	
 		ChannelPipeline cp = sc.pipeline();
 		if (connectionManagerHandler != null) {
 			cp.addLast(connectionManagerHandler); //1.접속 제한
 		}
 		
-		if (logLevel != null) {
-			cp.addLast(new LoggingHandler(logLevel));	//2.로깅
+		if (pipelineLogLevel != null) {
+			cp.addLast(new LoggingHandler(pipelineLogLevel));	//2.로깅
 		}
 		
 		
 		if (readTimeoutMillis > 0) {
-			cp.addLast(new AsyncCloseReadTimeoutHandler(readTimeoutMillis, TimeUnit.MILLISECONDS, clientAgent.getByteLengthBasedReader()));//3.리드 타임아웃
+			cp.addLast(new AsyncCloseReadTimeoutHandler(readTimeoutMillis, TimeUnit.MILLISECONDS, clientAgent.getReader()));//3.리드 타임아웃
 		}
 		
 	
 		
 		
-		cp.addLast("ByteLengthBasedInboundHandler", new ByteLengthBasedInboundHandler(clientAgent.getByteLengthBasedReader(), readTimeoutMillisOnRead)); //4. READ 처리
+		cp.addLast("ByteLengthBasedInboundHandler", new ByteLengthBasedInboundHandler(clientAgent.getReader(), readTimeoutMillisOnRead)); //4. READ 처리
     }
     
     protected void option(ServerBootstrap sb) {

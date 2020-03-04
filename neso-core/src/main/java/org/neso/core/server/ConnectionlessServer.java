@@ -101,9 +101,9 @@ public class ConnectionlessServer extends AbstractServer {
 		}
 		
 	
-		ClientAgent clientAgent = new ClientAgent(sc, ServerContext.context(getPort(), maxConnections, getRequestHandler()), writeTimeoutMillis);
+		ClientAgent clientAgent = new ClientAgent(sc, ServerContext.context(getPort(), maxConnections, getRequestHandler()), writeTimeoutMillis, true);
 		
-		cp.addLast(new ByteLengthBasedInboundHandler(clientAgent.getByteLengthBasedReader(), -1)); //4. READ 처리
+		cp.addLast(new ByteLengthBasedInboundHandler(clientAgent.getReader(), -1)); //4. READ 처리
 		
 	}
 

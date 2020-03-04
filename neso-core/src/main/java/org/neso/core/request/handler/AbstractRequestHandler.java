@@ -3,6 +3,7 @@ package org.neso.core.request.handler;
 
 import java.nio.charset.Charset;
 
+import org.neso.core.netty.ClientAgent;
 import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.factory.AbstractRequestFactory;
@@ -92,11 +93,11 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	@Override
 	public void onRequest(Client client, HeadBodyRequest req) {
 		
-		if (req instanceof OperableHeadBodyRequest) {
+		if (req instanceof OperableHeadBodyRequest && client instanceof ClientAgent) {
 			
 			OperableHeadBodyRequest request = (OperableHeadBodyRequest) req;
-			
-			RequestTask task = new RequestTask(client, request, this);
+			ClientAgent clientAgent = (ClientAgent) client;
+			RequestTask task = new RequestTask(clientAgent, request, this);
 			
 			requestTaskPool.register(task, client, request);
 			 

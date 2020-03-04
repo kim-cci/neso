@@ -2,6 +2,14 @@ package org.neso.core.netty;
 
 import io.netty.buffer.ByteBuf;
 
+/**
+ * 
+ * @See {@link ByteLengthBasedInboundHandler}
+ * 
+ * 1.getToReadByte
+ * 2.onRead(toReadBuf) 
+ * 
+ */
 public interface ByteLengthBasedReader {
 	
 	public void init();

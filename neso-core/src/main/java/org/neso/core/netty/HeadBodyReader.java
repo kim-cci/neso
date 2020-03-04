@@ -20,15 +20,19 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 	
 	final private Client client;
 	
+	
 	private OperableHeadBodyRequest currentRequest;
 	
 	private boolean readable = true;
 	
+	private boolean logOnOff;
 	
-	public HeadBodyReader(RequestHandler requestHandler, Client client) {
+	
+	public HeadBodyReader(RequestHandler requestHandler, Client client, boolean logOnOff) {
     	this.requestHandler = requestHandler;
     	this.client = client;
     	this.currentRequest =  requestHandler.getRequestFactory().newHeadBodyRequest(client, requestHandler);
+    	this.logOnOff = logOnOff;
     	init();
 	}
 	
@@ -64,28 +68,16 @@ public class HeadBodyReader implements ByteLengthBasedReader {
     	
     	return toReadBytes;
     }
-    
-    private void log(String eventName, ByteBuf readedBuf) {
-		int length = readedBuf.readableBytes();
-		int offset = readedBuf.readerIndex();
-        int rows = length / 16 + (length % 15 == 0? 0 : 1) + 4;
-        StringBuilder dump = new StringBuilder(eventName.length() + 2 + 10 + 1 + 2 + rows * 80);
 
-        dump.append(eventName).append(": ").append(length).append('B').append(NEWLINE);
-    	ByteBufUtil.appendPrettyHexDump(dump, readedBuf, offset, length);
-    	
-    	readedBuf.resetReaderIndex();
-    	
-    	logger.info(dump.toString());
-    }
-    
     @Override
     public boolean onRead(ByteBuf readedBuf) throws Exception {
 
 		if (!currentRequest.isReadedHead()) {
 			
-			//if log
-			log("HEADER RECEIVED", readedBuf);
+			if (logOnOff) {
+				log("HEADER RECEIVED", readedBuf);
+			}
+			
 
 			currentRequest.setHeadBytes(readedBuf);
 			
@@ -98,8 +90,10 @@ public class HeadBodyReader implements ByteLengthBasedReader {
     		
     		return false; //헤더 읽기 완료.. 바디를 읽어야 함. false
 		} else if (!currentRequest.isReadedBody()) {
-			//if log
-			log("BODY RECEIVED", readedBuf);
+			
+			if (logOnOff) {
+				log("BODY RECEIVED", readedBuf);
+			}
 			
 			currentRequest.setBodyBytes(readedBuf);
 			
@@ -117,6 +111,20 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 		}
     }
     
+    
+    private void log(String eventName, ByteBuf readedBuf) {
+		int length = readedBuf.readableBytes();
+		int offset = readedBuf.readerIndex();
+        int rows = length / 16 + (length % 15 == 0? 0 : 1) + 4;
+        StringBuilder dump = new StringBuilder(eventName.length() + 2 + 10 + 1 + 2 + rows * 80);
+
+        dump.append(eventName).append(": ").append(length).append('B').append(NEWLINE);
+    	ByteBufUtil.appendPrettyHexDump(dump, readedBuf, offset, length);
+    	
+    	readedBuf.resetReaderIndex();
+    	
+    	logger.info(dump.toString());
+    }
     
 	@Override
 	public void onReadException(Throwable th) {

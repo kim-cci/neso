@@ -17,6 +17,7 @@ import org.neso.core.request.handler.task.RequestTaskThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public abstract class ServerHandler extends AbstractRequestHandler {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -114,16 +115,17 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 			
 			try {
 				ByteBasedWriter writer = client.getWriter();
-				
+//				
 //				for (byte b : response) {  //TO TEST
 //					writer.write(b);
+//					Thread.sleep(100);
 //				}
 				
 				writer.write(response == null ? new byte[0] : response);
 				writer.close();
 				
 			} catch (Exception e) {
-				logger.error("write exception...");
+				onExceptionWrite(client, e);
 			}
 		} else {
 			onExceptionWrite(client, new ClientAbortException(client));
@@ -146,9 +148,15 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 				errorMessage = "read error".getBytes();
 			}
 
-			ByteBasedWriter writer = client.getWriter();
-			writer.write(errorMessage);
-			writer.close();
+			try {
+				ByteBasedWriter writer = client.getWriter();
+				writer.write(errorMessage);
+				writer.close();
+
+			} catch (Exception e) {
+				logger.error("occurred serverHandler's write ");
+			}
+
 			
 			client.disconnect();
 		}

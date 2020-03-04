@@ -13,14 +13,10 @@ import io.netty.util.ReferenceCountUtil;
 
 
 /**
- * byte array 길이 기반으로 데이터를 읽는 ChannelInboundHandlerAdapter.
+ * byte array 길이 기반으로 데이터를 읽는 ChannelInboundHandlerAdapter
  * 
  * @see ByteLengthBasedReader
  * 
- * 1.getToReadByte -> 읽어야할 바이트 수를 clientAgent로부터 획득, 0이면 종료
- * 2.onRead -> 읽어어야 바이트를 다 읽으면 clientAgent로 bytebuf 전달
- * 
- * 1,2,3 반복...
  */
 public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAdapter {
 
@@ -113,7 +109,6 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     	if (toReadBuf != null && toReadBuf.refCnt() > 0) {
     		ReferenceCountUtil.release(toReadBuf);
     	}
-    	
     	reader.close();
     }
 

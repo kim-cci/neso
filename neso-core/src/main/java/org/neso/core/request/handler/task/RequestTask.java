@@ -1,6 +1,6 @@
 package org.neso.core.request.handler.task;
 
-import org.neso.core.request.Client;
+import org.neso.core.netty.ClientAgent;
 import org.neso.core.request.handler.AbstractRequestHandler;
 import org.neso.core.request.internal.OperableHeadBodyRequest;
 import org.slf4j.Logger;
@@ -14,9 +14,9 @@ public class RequestTask implements Runnable {
 		
 	final private OperableHeadBodyRequest request;
 	final private AbstractRequestHandler requestHandler;
-	final private Client client;
+	final private ClientAgent client;
 	
-	public RequestTask(Client client, OperableHeadBodyRequest request, AbstractRequestHandler requestHandler) {
+	public RequestTask(ClientAgent client, OperableHeadBodyRequest request, AbstractRequestHandler requestHandler) {
 		this.request = request; 
 		this.requestHandler = requestHandler;
 		this.client = client;
@@ -42,12 +42,15 @@ public class RequestTask implements Runnable {
 			
 		} finally {
 			
+			
+			
 			long elapsedMilis = System.currentTimeMillis() - startTime; //System.nanoTime() - startTime;	
 			
 			//TODO //지연 리스터 처리 ?
 			
 			logger.debug("request task finished.. elapse time -> {}.{} sec", elapsedMilis / 1000, String.format("%03d", elapsedMilis % 1000));
 			request.release();
+			client.release();
 		}
 	}
 }

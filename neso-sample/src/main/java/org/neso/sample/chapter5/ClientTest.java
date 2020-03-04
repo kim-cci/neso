@@ -13,26 +13,24 @@ public class ClientTest {
 		SocketAddress address = new InetSocketAddress(InetAddress.getByName("localhost"), 10001); 
 		socket.connect(address); 
 		 
-		for (int i = 0; i < 102; i++) {
-			StringBuilder sb = new StringBuilder(); 
-			sb.append("30"); //헤더(바디길이필드)는 2 바이트, 바디 길이는 30 
-			sb.append("AAAAAAFAAAAABAGGZATJAAABAAEAAA1"); //바디길이는 30 바이트 
+		for (int i = 0; i < 100; i++) {
+	
 			socket.getOutputStream().write("30".getBytes()); 
 			socket.getOutputStream().flush(); 
-			Thread.sleep(2000);
-			socket.getOutputStream().write("AAAAAAFAAAAABAGGZATJAAABAAEAAA1".getBytes()); 
+
+			socket.getOutputStream().write("AAAAAAFAA35ABAGGZATJ35ABAAEAAA".getBytes()); 
 			socket.getOutputStream().flush(); 
-			byte[] responseBytes = new byte[30]; 
-
-		//	while(socket.getInputStream().read(responseBytes) > -1) {
-	//			System.out.print(new String(responseBytes)); 
-//			}
-			socket.getInputStream().read(responseBytes);
-			System.out.println(new String(responseBytes)); 
+			byte[] responseBytes = new byte[1]; 
+			
+			while(socket.getInputStream().read(responseBytes) > -1) {
+				System.out.print(new String(responseBytes)); 
+			}
+//			socket.getInputStream().read(responseBytes);
+//			System.out.println(new String(responseBytes)); 
 //			
-			 
+			  
 		}
-
+		
 		socket.close(); 
 	}
 }

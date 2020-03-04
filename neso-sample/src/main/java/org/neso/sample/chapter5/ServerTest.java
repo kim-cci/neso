@@ -19,6 +19,6 @@ public class ServerTest {
 		
 		});
 		//sh.setRepeatableReceiveRequest(true);
-		new Server(sh, 10001).readTimeoutMillisOnReadStatus(3000).start();
+		new Server(sh, 10001).start(); //.readTimeoutMillisOnReadStatus(3000)
 	}
 }

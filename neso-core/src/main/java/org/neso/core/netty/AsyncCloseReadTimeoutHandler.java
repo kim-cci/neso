@@ -7,6 +7,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
 
+/**
+ * ReadTimeoutHandler 커스텀
+ * 
+ * readTimedOut override 함
+ */
 public class AsyncCloseReadTimeoutHandler extends ChannelInboundHandlerAdapter {
     private static final long MIN_TIMEOUT_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
 
