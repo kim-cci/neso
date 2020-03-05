@@ -13,18 +13,29 @@ public class ClientTest {
 		SocketAddress address = new InetSocketAddress(InetAddress.getByName("localhost"), 10001); 
 		socket.connect(address); 
 		 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1; i++) {
 	
 			socket.getOutputStream().write("30".getBytes()); 
 			socket.getOutputStream().flush(); 
-
-			socket.getOutputStream().write("AAAAAAFAA35ABAGGZATJ35ABAAEAAA".getBytes()); 
+			
+			socket.getOutputStream().write("AAAAAAFAA35ABAGGZATJ35ABAAEAAk".getBytes()); 
 			socket.getOutputStream().flush(); 
+			
+			socket.getOutputStream().write("30".getBytes()); 
+			socket.getOutputStream().flush(); 
+			
+			socket.getOutputStream().write("AAAAAAFAA35ABAGGZATJ35ABAAEAAk".getBytes()); 
+			socket.getOutputStream().flush(); 
+			
 			byte[] responseBytes = new byte[1]; 
 			
-			while(socket.getInputStream().read(responseBytes) > -1) {
+			for (int j = 0; j < 60; j++) {
+				socket.getInputStream().read(responseBytes);
 				System.out.print(new String(responseBytes)); 
 			}
+//			while(socket.getInputStream().read(responseBytes) > -1) {
+//				System.out.print(new String(responseBytes)); 
+//			}
 //			socket.getInputStream().read(responseBytes);
 //			System.out.println(new String(responseBytes)); 
 //			

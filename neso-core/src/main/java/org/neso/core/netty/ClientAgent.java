@@ -173,7 +173,7 @@ public class ClientAgent extends SessionImplClient {
 				if (isConnected()) {
 					
 					if (logOnOff) {
-						log(buf);
+						log(buf);	//TODO 리스너안으로 로그를 넣어야 하는데.. 과연 BUF복사 비용까지.. 들이면서 해야하나..
 					}
 					
 					final ChannelFuture cf = lastCf.channel().write(buf);

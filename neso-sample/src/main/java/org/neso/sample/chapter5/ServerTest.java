@@ -14,11 +14,12 @@ public class ServerTest {
 		ServerHandler sh = new SingleApiServerHandler(2, request -> {
 			
 			byte[] response = request.getBodyBytes(); 
+			Thread.sleep(5000);
 			Arrays.sort(response); 
 			return response; 
 		
 		});
-		//sh.setRepeatableReceiveRequest(true);
-		new Server(sh, 10001).start(); //.readTimeoutMillisOnReadStatus(3000)
+		sh.setRepeatableReceiveRequest(true);
+		new Server(sh, 10001).start(); //.readTimeoutMillisOnReadStatus(2000)
 	}
 }

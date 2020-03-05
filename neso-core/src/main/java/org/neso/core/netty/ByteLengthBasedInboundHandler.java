@@ -40,10 +40,11 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
 
-    	int toReadBytes = reader.getToReadByte();
-    	if (toReadBytes < 0) {
+    	int toReadBytes = reader.getToReadBytes();
+    	if (toReadBytes < 1) {
     		throw new RuntimeException("cant read ...");
     	}
+    	logger.debug("toReadBytes length => {}", toReadBytes);
     	toReadBuf = ctx.alloc().buffer(toReadBytes);
     }
     
@@ -51,40 +52,34 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     	
-		try {
-			if (msg instanceof ByteBuf) {
-				ByteBuf buf = (ByteBuf) msg;
+    	try {
+    		if (msg instanceof ByteBuf) {
+    			ByteBuf inputBuf = (ByteBuf) msg;
 		        
-		    	while (buf.isReadable()) {
-		    		
-		    		if (toReadBuf.writableBytes() == 0) {
-		    			byte[] overBytes = BufUtils.copyToByteArray(buf);
-    		    		throw new OverReadBytesException(overBytes);
-		    		}
-		    		
-		    		if (isCompleteReadBuf(buf, toReadBuf)) {
+				while (inputBuf.isReadable()) {
 
-		    			if (reader.onRead(toReadBuf.copy())){
-		    				//request가 읽기가 다 끝났다면..
-		    				removeReadTimeoutHandler(ctx);
-		    				
-		    			} else {
-		    				//request의 리드가 아직 남았다면..
-		    				addReadTimeoutHandler(ctx);
-		    			}
-			    			 
-                    	int toReadBytes = reader.getToReadByte();
-                    	logger.debug("toReadBytes length => {}", toReadBytes);
-                    	toReadBuf.clear();
-                		toReadBuf.capacity(toReadBytes);
-        
-	                    
+		    		if (reader.isClose()) {	//데이터는 더 들어왔는데... 읽기가 종료되었다..
+			    		
+			    		byte[] overBytes = BufUtils.copyToByteArray(inputBuf);
+	    		    	throw new OverReadBytesException(overBytes);
+	    		    	
 		    		} else {
-		    			//입력받은 byte가 부족하다면.. toReadBuf가 아직 덜 찼다면...
-		    			addReadTimeoutHandler(ctx);
+			    		addReadTimeoutHandler(ctx);
+			    		
+			    		int toReadlength = Math.min(toReadBuf.writableBytes(), inputBuf.readableBytes());
+	    	        	inputBuf.readBytes(toReadBuf, toReadlength);
+	    	        	 
+	    	        	if (!toReadBuf.isWritable()) {	//읽어야 할 바이트를 다 읽었다면..
+	    	        		if (reader.onRead(toReadBuf.copy())) {
+	    	        			removeReadTimeoutHandler(ctx);
+	    	        		}
+	    	        		
+	        	        	int toReadBytes = reader.getToReadBytes();
+	                        logger.debug("toReadBytes length => {}", toReadBytes);
+	                        toReadBuf.clear();
+	                    	toReadBuf.capacity(toReadBytes);
+	    	        	}
 		    		}
-		    		
-
 		    	}
 			}
 		} finally {
@@ -109,26 +104,11 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     	if (toReadBuf != null && toReadBuf.refCnt() > 0) {
     		ReferenceCountUtil.release(toReadBuf);
     	}
-    	reader.close();
+    	reader.destroy();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {	
     	reader.onReadException(cause);
-    }
-    
-    private boolean isCompleteReadBuf(ByteBuf fromBuf, ByteBuf toBuf) {
-
-    	int readLength = toBuf.capacity();
-        if (readLength < 1) {
-            return true;
-        }
-        if (fromBuf.isReadable()) {
-            int readlength = toBuf.writableBytes() < fromBuf.readableBytes() ? toBuf.writableBytes() :fromBuf.readableBytes();
-            fromBuf.readBytes(toBuf, readlength);
-            return toBuf.readableBytes() >= readLength;
-        } else {
-            return false;
-        }
     }
 }

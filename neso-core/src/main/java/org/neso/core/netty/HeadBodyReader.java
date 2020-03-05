@@ -2,6 +2,8 @@ package org.neso.core.netty;
 
 import static io.netty.util.internal.StringUtil.NEWLINE;
 
+
+
 import org.neso.core.request.Client;
 import org.neso.core.request.handler.RequestHandler;
 import org.neso.core.request.internal.OperableHeadBodyRequest;
@@ -20,13 +22,13 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 	
 	final private Client client;
 	
-	
+    final private boolean logOnOff;
+    
+    
 	private OperableHeadBodyRequest currentRequest;
 	
 	private boolean readable = true;
-	
-	private boolean logOnOff;
-	
+
 	
 	public HeadBodyReader(RequestHandler requestHandler, Client client, boolean logOnOff) {
     	this.requestHandler = requestHandler;
@@ -40,33 +42,33 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 	public void init() {
 		requestHandler.onConnect(client);
 	}
-	
-	
-	
+
 	@Override
-	public void close() {
+	public void destroy() {
 		requestHandler.onDisConnect(client);
 	}
     
-    
     @Override
-    public int getToReadByte() {
-    	if (!readable) {
-    		return 0;
+    public boolean isClose() {
+    	return !readable;
+    }
+	
+    @Override
+    public int getToReadBytes() {
+    	if (isClose()) {
+    		return 0; //throw new RuntimeException("reader is closed...");
     	}
     	
-    	int toReadBytes = 0;
     	if (!currentRequest.isReadedHead()) {
     		int headLength = requestHandler.getHeadLength();
     		if (headLength < 1) {
     			throw new RuntimeException("Header length cannot be zero or a negative number ");
     		}
-    		toReadBytes = headLength;
-		} else if (!currentRequest.isReadedBody()) {
-			toReadBytes = requestHandler.getBodyLength(currentRequest);
+    		return headLength;
+    		
+		} else { //if (!currentRequest.isReadedBody()) 
+			return requestHandler.getBodyLength(currentRequest);
 		}
-    	
-    	return toReadBytes;
     }
 
     @Override
@@ -78,21 +80,27 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 				log("HEADER RECEIVED", readedBuf);
 			}
 			
-
+			if (getToReadBytes() != readedBuf.capacity()) {
+				throw new RuntimeException("it's different expected bytes");
+			}
+			
 			currentRequest.setHeadBytes(readedBuf);
 			
-			if (getToReadByte() == 0) { 
-				/**
-				 * 바디가 0인 경우, 더 읽어야 할 필요가 없다면.. request read complete 상태로 만들기 위해
-				 **/
-				currentRequest.setBodyBytes(Unpooled.directBuffer(0));
+			if (getToReadBytes() == 0) {
+                /**
+                 * 바디가 0인 경우, 더 읽어야 할 필요가 없다면.. request 
+                 **/
+				return onRead(Unpooled.directBuffer(0));
 			}
-    		
-    		return false; //헤더 읽기 완료.. 바디를 읽어야 함. false
-		} else if (!currentRequest.isReadedBody()) {
+			return false;
+		} else { //if (!currentRequest.isReadedBody()) 
 			
 			if (logOnOff) {
 				log("BODY RECEIVED", readedBuf);
+			}
+			
+			if (getToReadBytes() != readedBuf.capacity()) {
+				throw new RuntimeException("it's different expected bytes");
 			}
 			
 			currentRequest.setBodyBytes(readedBuf);
@@ -105,12 +113,9 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 				readable = false;
 			}
         	
-        	return true;
-		} else {
-			throw new RuntimeException(".... not");
+    		return true;
 		}
     }
-    
     
     private void log(String eventName, ByteBuf readedBuf) {
 		int length = readedBuf.readableBytes();
