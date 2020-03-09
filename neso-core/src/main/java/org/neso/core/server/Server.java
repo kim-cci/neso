@@ -37,6 +37,7 @@ public class Server {
 	
 	private int writeTimeoutMillis = 2000;
 	
+	private int maxBodyBytesLength = -1;
 	
 	private LogLevel pipelineLogLevel = null;
 	
@@ -87,6 +88,11 @@ public class Server {
     
     public Server maxConnections(int maxConnections) {
     	this.maxConnections = maxConnections;
+    	return this;
+    }
+    
+    public Server maxBodyBytesLength(int maxBodyBytesLength) {
+    	this.maxBodyBytesLength = maxBodyBytesLength;
     	return this;
     }
 
@@ -189,7 +195,7 @@ public class Server {
     
     protected void initializerAccept(SocketChannel sc) {
     	
-    	ClientAgent clientAgent = new ClientAgent(sc, context, writeTimeoutMillis, inoutLogging);
+    	ClientAgent clientAgent = new ClientAgent(sc, context, writeTimeoutMillis, inoutLogging, maxBodyBytesLength);
     	
 		ChannelPipeline cp = sc.pipeline();
 		if (connectionManagerHandler != null) {

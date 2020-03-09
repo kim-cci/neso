@@ -43,7 +43,7 @@ public class ClientAgent extends SessionImplClient {
     
 	
     
-	public ClientAgent(SocketChannel sc, ServerContext serverContext, int writeTimeoutMillis, boolean logOnOff) {
+	public ClientAgent(SocketChannel sc, ServerContext serverContext, int writeTimeoutMillis, boolean logOnOff, int maxBodyBytesLength) {
 		super(sc, serverContext);
     	
     	if (writeTimeoutMillis < 0) {
@@ -53,7 +53,7 @@ public class ClientAgent extends SessionImplClient {
     	this.logOnOff = logOnOff;
     	this.requestHandler = serverContext.getRequestHandler(); 
     	
-    	this.headBodyRequestReader = new HeadBodyReader(requestHandler, this, logOnOff);
+    	this.headBodyRequestReader = new HeadBodyReader(requestHandler, this, logOnOff, maxBodyBytesLength);
     	this.writer = new Bbw();
 	}
 	

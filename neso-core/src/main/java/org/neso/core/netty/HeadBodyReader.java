@@ -24,17 +24,19 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 	
     final private boolean logOnOff;
     
-    
+	final private int maxBodyBytesLength;
+	
 	private OperableHeadBodyRequest currentRequest;
 	
 	private boolean readable = true;
 
 	
-	public HeadBodyReader(RequestHandler requestHandler, Client client, boolean logOnOff) {
+	public HeadBodyReader(RequestHandler requestHandler, Client client, boolean logOnOff, int maxBodyBytesLength) {
     	this.requestHandler = requestHandler;
     	this.client = client;
     	this.currentRequest =  requestHandler.getRequestFactory().newHeadBodyRequest(client, requestHandler);
     	this.logOnOff = logOnOff;
+    	this.maxBodyBytesLength = maxBodyBytesLength;
     	init();
 	}
 	
@@ -67,7 +69,16 @@ public class HeadBodyReader implements ByteLengthBasedReader {
     		return headLength;
     		
 		} else { //if (!currentRequest.isReadedBody()) 
-			return requestHandler.getBodyLength(currentRequest);
+			
+			int bodyLength = requestHandler.getBodyLength(currentRequest);
+			
+			if (maxBodyBytesLength > 0) {
+				if (maxBodyBytesLength < bodyLength) {
+					throw new RuntimeException("Too long body length..");
+				}
+			}
+					
+			return bodyLength;
 		}
     }
 

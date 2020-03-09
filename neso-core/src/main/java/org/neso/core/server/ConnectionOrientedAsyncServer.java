@@ -85,7 +85,7 @@ public class ConnectionOrientedAsyncServer extends AbstractServer {
 			cp.addLast(new LoggingHandler(logLevel));	//2.로깅
 		}
  
-		ClientAgent clientAgent = new ClientAgent(sc, ServerContext.context(getPort(), maxConnections, getRequestHandler()), writeTimeoutMillis, true);
+		ClientAgent clientAgent = new ClientAgent(sc, ServerContext.context(getPort(), maxConnections, getRequestHandler()), writeTimeoutMillis, true, 0);
 		
 		
 		cp.addLast(new ByteLengthBasedInboundHandler(clientAgent.getReader(), readTimeoutMillisOnRead)); //4. READ 처리
