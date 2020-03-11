@@ -3,74 +3,31 @@ package org.neso.core.request.handler;
 
 import java.nio.charset.Charset;
 
-import org.neso.core.netty.ClientAgent;
+import org.neso.core.netty.ByteBasedWriter;
 import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
-import org.neso.core.request.factory.AbstractRequestFactory;
-import org.neso.core.request.factory.InMemoryRequestFactory;
-import org.neso.core.request.factory.RequestFactory;
 import org.neso.core.request.handler.task.RequestTask;
-import org.neso.core.request.handler.task.RequestTaskPool;
-import org.neso.core.request.handler.task.RequestTaskQueuePool;
 import org.neso.core.request.internal.OperableHeadBodyRequest;
-import org.neso.core.server.ServerContext;
+import org.neso.core.support.RequestRejectListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRequestHandler implements RequestHandler {
 
+	private final static String DEFAULT_REJECT_MESSAGE = "server is too busy";
+	
+	
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	protected final static int DEFAULT_TASK_MAX_THREAD_CNT = 200;
-	
-	protected final static boolean REPEATALBE_RECEIVE_REQUEST = true;
-	
 	final private int headerLength;
 	
 	private Charset serverCharSet = Charset.defaultCharset();
-
-	private RequestTaskPool requestTaskPool;
 	
-	private AbstractRequestFactory requestFactory;
 	
 	public AbstractRequestHandler(int headerLength) {
-		this(headerLength, DEFAULT_TASK_MAX_THREAD_CNT, REPEATALBE_RECEIVE_REQUEST);
-	}
-	
-	public AbstractRequestHandler(int headerLength, int maxThreads, boolean repeatableReceiveRequest) {
 		this.headerLength = headerLength;
-		this.requestTaskPool = new RequestTaskQueuePool(maxThreads);
-		this.requestFactory = new InMemoryRequestFactory(repeatableReceiveRequest);
 	}
-	
-	public void setRequestFactory(AbstractRequestFactory requestFactory) {
-		if (requestFactory == null) {
-			throw new NullPointerException("requestFactory is not null");
-		}
-		this.requestFactory = requestFactory;
-	}
-	
-	public void setRepeatableReceiveRequest(boolean repeatableReceiveRequest) {
-		requestFactory.setRepeatableReceiveRequest(repeatableReceiveRequest);
-	}
-	
-	public void setRequestTaskPool(RequestTaskPool requestTaskPool) {
-		if (requestTaskPool == null) {
-			throw new NullPointerException("requestTaskExecutorPool is not null");
-		}
-		this.requestTaskPool = requestTaskPool;
-	}
-	
-	@Override
-	public RequestFactory getRequestFactory() {
-		return requestFactory;
-	}
-	
-	@Override
-	public RequestTaskPool getRequestTaskPool() {
-		return requestTaskPool;
-	}
-	
+
 	@Override
 	final public int getHeadLength() {
 		return this.headerLength;
@@ -84,26 +41,40 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	public Charset getCharset() {
 		return serverCharSet;
 	}
-	
-	@Override
-	public void init(ServerContext context) {
-		
-	}
+
 
 	@Override
 	public void onRequest(Client client, HeadBodyRequest req) {
 		
-		if (req instanceof OperableHeadBodyRequest && client instanceof ClientAgent) {
+		if (req instanceof OperableHeadBodyRequest) {
 			
 			OperableHeadBodyRequest request = (OperableHeadBodyRequest) req;
-			ClientAgent clientAgent = (ClientAgent) client;
-			RequestTask task = new RequestTask(clientAgent, request, this);
-			
-			requestTaskPool.register(task, client, request);
-			 
+			RequestTask task = new RequestTask(client, request);
+ 
+			if (!client.getServerContext().requestTaskExecutor().registerTask(task)) {
+				logger.debug("request cant registered in the request pool");
+				
+				byte[] rejectMessage = DEFAULT_REJECT_MESSAGE.getBytes();
+				if (client.getServerContext().requestHandler() instanceof RequestRejectListener) {
+					
+					RequestRejectListener listener = (RequestRejectListener) client.getServerContext().requestHandler();
+				
+					try {
+						rejectMessage = listener.onRequestReject(client.getServerContext(), client.getServerContext().requestTaskExecutor().getMaxExecuteSize(), request);
+					} catch (Exception e) {
+						logger.error("occurred requestRejectListner's onRequestReject", e);
+					}
+				}
+				
+				ByteBasedWriter writer = client.getWriter();
+				writer.write(rejectMessage);
+				writer.close();
+			} else {
+				//logger.debug("request is registered in the request pool");
+			}
 	
 		} else {
-			throw new RuntimeException("not... request instanceof OperableHeadBodyRequest ");
+			throw new RuntimeException("not... request instanceof OperableHeadBodyRequest ...TODO ");
 		}
 	}
 }

@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 import org.neso.api.server.handler.ServerHandler;
 import org.neso.api.server.handler.support.SingleApiServerHandler;
+import org.neso.core.request.handler.task.IoWorkThreadExecutor;
 import org.neso.core.server.Server;
 
 public class ServerTest { 
@@ -19,7 +20,7 @@ public class ServerTest {
 			return response; 
 		
 		});
-		sh.setRepeatableReceiveRequest(true);
-		new Server(sh, 10001).start(); //.readTimeoutMillisOnReadStatus(2000)
+		
+		new Server(sh, 10001).connectionless().readTimeoutMillisOnReadStatus(3000).requestTaskExecutorType(IoWorkThreadExecutor.class).start();
 	}
 }

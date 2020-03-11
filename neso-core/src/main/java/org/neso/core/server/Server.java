@@ -12,12 +12,15 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.GenericFutureListener;
 
-import java.util.concurrent.TimeUnit;
+import java.lang.reflect.Constructor;
 
-import org.neso.core.netty.AsyncCloseReadTimeoutHandler;
 import org.neso.core.netty.ByteLengthBasedInboundHandler;
 import org.neso.core.netty.ClientAgent;
+import org.neso.core.request.factory.InMemoryRequestFactory;
+import org.neso.core.request.factory.RequestFactory;
 import org.neso.core.request.handler.RequestHandler;
+import org.neso.core.request.handler.task.RequestTaskExecutor;
+import org.neso.core.request.handler.task.SynchronousRequestTaskThreadExecutor;
 import org.neso.core.support.ConnectionManagerHandler;
 import org.neso.core.support.ConnectionRejectListener;
 import org.slf4j.Logger;
@@ -32,21 +35,26 @@ public class Server {
     
     private int maxConnections = -1;
     
-	private int readTimeoutMillis = -1;
+	//private int readTimeoutMillis = -1;		//io스레드가 슬립(작업중)이라면 스케쥴이 실행이 안되어서 타임아웃이 안먹힌다. 먹힐려면.. 그 다음 파이프라인이 새로운 스레드그룹이어야 하는데...이 구조는 아니니...
 	private int readTimeoutMillisOnRead = -1;
 	
 	private int writeTimeoutMillis = 2000;
 	
-	private int maxBodyBytesLength = -1;
+	private int maxRequestBodyLength = -1;
 	
 	private LogLevel pipelineLogLevel = null;
 	
 	private boolean inoutLogging = true;
-	   
-	private ConnectionManagerHandler connectionManagerHandler = null;
+	
+	private boolean connectionOriented = false;
+	
+    private int ioThreads = 0;	//0일 경우 core * 2 //최적화
     
-	 
-    private int workThreadCnt = 0;	//0일 경우 core * 2
+    private int requestTaskExecutorPoolSize = 100;
+    
+    private Class<? extends RequestTaskExecutor> requestTaskExecutorType = SynchronousRequestTaskThreadExecutor.class;
+	
+    private ConnectionManagerHandler connectionManagerHandler;
     
     private ServerContext context;
     
@@ -63,24 +71,11 @@ public class Server {
     	return port;
     }
     
- 
-    protected Server ioThreads(int ioThreads) {
-    	if (ioThreads < 0) {
-    		ioThreads = 0;
-    	}
-    	this.workThreadCnt = ioThreads;
+    public Server requestTaskExecutorPoolSize(int requestTaskExecutorPoolSize) {
+    	this.requestTaskExecutorPoolSize = requestTaskExecutorPoolSize;
     	return this;
     }
-    
-    public Server readTimeoutMillis(int readTimeoutMillis) {
-    	if (requestHandler.getRequestFactory().isRepeatableReceiveRequest()) {	//접속 유지형은 사용불가..
-    		logger.warn("invalid option ");
-    	} else {
-    		this.readTimeoutMillis = readTimeoutMillis;
-    	}
-    	return this;
-    }
-    
+
     public Server readTimeoutMillisOnReadStatus(int readTimeoutMillisOnRead) {
     	this.readTimeoutMillisOnRead = readTimeoutMillisOnRead;
     	return this;
@@ -91,8 +86,8 @@ public class Server {
     	return this;
     }
     
-    public Server maxBodyBytesLength(int maxBodyBytesLength) {
-    	this.maxBodyBytesLength = maxBodyBytesLength;
+    public Server maxRequestBodyLength(int maxRequestBodyLength) {
+    	this.maxRequestBodyLength = maxRequestBodyLength;
     	return this;
     }
 
@@ -115,12 +110,28 @@ public class Server {
     	return this;
     }
     
+    public Server connectionless() {
+    	this.connectionOriented = false;
+    	return this;
+    }
+    
+    public Server connectionOriented() {
+    	this.connectionOriented = true;
+    	return this;
+    }
+    
+    public Server requestTaskExecutorType(Class<? extends RequestTaskExecutor> requestTaskExecutorType) {
+    	this.requestTaskExecutorType = requestTaskExecutorType;
+    	return this;
+    }
+    
+    
     public void start() {
     	
     	initializerServerStart();
     	
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup(workThreadCnt);//connectionManager.getMaxConnectionSize() + 1
+        EventLoopGroup workerGroup = new NioEventLoopGroup(ioThreads);//connectionManager.getMaxConnectionSize() + 1
         
         try {
             ServerBootstrap sbs = new ServerBootstrap(); 
@@ -181,21 +192,44 @@ public class Server {
 
     protected void initializerServerStart() {
     	
-    	this.context = ServerContext.context(getPort(), maxConnections, getRequestHandler());
+    	RequestTaskExecutor requestTaskExecutor = createRequestTaskExecutor();
+    	//TODO requestTaskExecutor 로그 출력
+    	
+		if (requestTaskExecutor.isRunIoWorkThread()) {
+			ioThreads = requestTaskExecutor.getMaxExecuteSize() + 10; //io스레드가 request처리 동시실행숫자보다 작으면 io스레드에서 병목이 발생하므로.. io스레드가 무조건 커야한다.
+		} else {
+			//io thread는 네티 전략 따름 -> 0
+		}
+		
+    	RequestFactory requestFactory = new InMemoryRequestFactory(); //일단 메모리만 제공
     	
 		ConnectionManagerHandler connectionManagerHandler = maxConnections > 0 ? new ConnectionManagerHandler(maxConnections) : null;
-		if (getRequestHandler() instanceof ConnectionRejectListener) {
+		if (requestHandler instanceof ConnectionRejectListener) {
 			connectionManagerHandler.setConnectionRejectListener((ConnectionRejectListener) getRequestHandler());
 		}
 		
-		if (!getRequestHandler().getRequestTaskPool().isAsyncResponse()) {
-			ioThreads(getRequestHandler().getRequestTaskPool().getMaxThreads() + 10);
-		}
+		
+    	ServerOptions options = new ServerOptions(connectionOriented, requestTaskExecutorPoolSize, readTimeoutMillisOnRead, writeTimeoutMillis, maxConnections, maxRequestBodyLength, inoutLogging);
+    	
+    	//TODO 서버옵션 로그 출력
+    	this.context = new ServerContext(getPort(), getRequestHandler(), requestFactory, requestTaskExecutor, options, connectionManagerHandler);
+    }
+    
+    private RequestTaskExecutor createRequestTaskExecutor() {
+    	try {
+    
+        	Constructor<? extends RequestTaskExecutor> cons = requestTaskExecutorType.getConstructor(new Class[]{int.class});
+        	
+        	return cons.newInstance(requestTaskExecutorPoolSize);
+    	} catch (Exception e) {
+    		throw new RuntimeException("requestTaskExecutor create error", e);
+    	}
     }
     
     protected void initializerAccept(SocketChannel sc) {
     	
-    	ClientAgent clientAgent = new ClientAgent(sc, context, writeTimeoutMillis, inoutLogging, maxBodyBytesLength);
+
+    	ClientAgent clientAgent = new ClientAgent(sc, context);
     	
 		ChannelPipeline cp = sc.pipeline();
 		if (connectionManagerHandler != null) {
@@ -206,15 +240,11 @@ public class Server {
 			cp.addLast(new LoggingHandler(pipelineLogLevel));	//2.로깅
 		}
 		
-		
-		if (readTimeoutMillis > 0) {
-			cp.addLast(new AsyncCloseReadTimeoutHandler(readTimeoutMillis, TimeUnit.MILLISECONDS, clientAgent.getReader()));//3.리드 타임아웃
-		}
-		
-	
-		
-		
-		cp.addLast("ByteLengthBasedInboundHandler", new ByteLengthBasedInboundHandler(clientAgent.getReader(), readTimeoutMillisOnRead)); //4. READ 처리
+		//if (readTimeoutMillis > 0) {
+		//	cp.addLast(new AsyncCloseReadTimeoutHandler(readTimeoutMillis, TimeUnit.MILLISECONDS, clientAgent.getReader()));//3.리드 타임아웃
+		//}
+
+		cp.addLast(ByteLengthBasedInboundHandler.class.getSimpleName(), new ByteLengthBasedInboundHandler(clientAgent.getReader(), readTimeoutMillisOnRead)); //4. READ 처리
     }
     
     protected void option(ServerBootstrap sb) {

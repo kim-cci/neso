@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.neso.core.exception.ClientAbortException;
-import org.neso.core.request.handler.RequestHandler;
 import org.neso.core.server.ServerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,40 +26,33 @@ public class ClientAgent extends SessionImplClient {
 
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	final private RequestHandler requestHandler;
-
-	final ByteLengthBasedReader headBodyRequestReader;
-	
-	final Bbw writer;
-	
 	final private ReentrantLock lock = new ReentrantLock();
 	
-	final private int writeTimeoutMillis;
+	private ByteLengthBasedReader headBodyRequestReader;
 	
-	final private boolean logOnOff;
-	
+	private Bbw writer;
+
     private AtomicBoolean writable = new AtomicBoolean(true);
     
-	
-    
-	public ClientAgent(SocketChannel sc, ServerContext serverContext, int writeTimeoutMillis, boolean logOnOff, int maxBodyBytesLength) {
+ 
+	public ClientAgent(SocketChannel sc, ServerContext serverContext) {
 		super(sc, serverContext);
     	
-    	if (writeTimeoutMillis < 0) {
+    	if (serverContext.options().getWriteTimeoutMillis() < 0) {
     		throw new RuntimeException("writeTimeoutMillis is bigger than zero");
     	}
-    	this.writeTimeoutMillis = writeTimeoutMillis;
-    	this.logOnOff = logOnOff;
-    	this.requestHandler = serverContext.getRequestHandler(); 
-    	
-    	this.headBodyRequestReader = new HeadBodyReader(requestHandler, this, logOnOff, maxBodyBytesLength);
+    
+    	init();
+	}
+	
+	private void init() {
+		this.headBodyRequestReader = new HeadBodyReader(this, getServerContext());
     	this.writer = new Bbw();
 	}
 	
 	public ByteLengthBasedReader getReader() {
 		return this.headBodyRequestReader;
 	}
-
     
     @Override
     public boolean isConnected() {
@@ -126,7 +118,8 @@ public class ClientAgent extends SessionImplClient {
 		});
     }
     
-    public void release() {
+    @Override
+    public void releaseWriterLock() {
     	if (lock.isHeldByCurrentThread()) {
     		logger.debug("client release ... unlock");
     		getWriter().close();
@@ -172,7 +165,7 @@ public class ClientAgent extends SessionImplClient {
 
 				if (isConnected()) {
 					
-					if (logOnOff) {
+					if (getServerContext().options().isInoutLogging()) {
 						log(buf);	//TODO 리스너안으로 로그를 넣어야 하는데.. 과연 BUF복사 비용까지.. 들이면서 해야하나..
 					}
 					
@@ -183,11 +176,11 @@ public class ClientAgent extends SessionImplClient {
 						public void run() {
 							if (!cf.isDone()) {
 								if (writable.compareAndSet(true, false)) {
-									requestHandler.onExceptionWrite(ClientAgent.this, WriteTimeoutException.INSTANCE);
+									getServerContext().requestHandler().onExceptionWrite(ClientAgent.this, WriteTimeoutException.INSTANCE);
 								}
 							}
 						}
-					}, writeTimeoutMillis, TimeUnit.MILLISECONDS);
+					}, getServerContext().options().getWriteTimeoutMillis(), TimeUnit.MILLISECONDS);
 
 					lastCf = cf.addListener(new ChannelFutureListener() {
 						
@@ -200,7 +193,7 @@ public class ClientAgent extends SessionImplClient {
 	    		} else {
 	    			//logger.debug("접속 종료로 인해...쓰기 작업 중단");
 					if (writable.compareAndSet(true, false)) {
-						requestHandler.onExceptionWrite(ClientAgent.this, new ClientAbortException(ClientAgent.this));
+						getServerContext().requestHandler().onExceptionWrite(ClientAgent.this, new ClientAbortException(ClientAgent.this));
 					}
 	    		}
 				
@@ -215,7 +208,7 @@ public class ClientAgent extends SessionImplClient {
 			
 			socketChannel().flush();
 			
-			if (!requestHandler.getRequestFactory().isRepeatableReceiveRequest()) {
+			if (!getServerContext().options().isConnectionOriented()) {
 				if (writable.compareAndSet(true, false)) {
 					disconnect();
 				}

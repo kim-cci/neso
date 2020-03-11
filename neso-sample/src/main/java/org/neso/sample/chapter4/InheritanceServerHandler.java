@@ -1,9 +1,11 @@
 package org.neso.sample.chapter4;
 
 import org.neso.api.server.handler.ServerHandler;
+import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.HeadRequest;
 import org.neso.core.request.Session;
+import org.neso.core.server.ServerContext;
 
 public class InheritanceServerHandler extends ServerHandler {
 
@@ -51,5 +53,23 @@ public class InheritanceServerHandler extends ServerHandler {
 	public byte[] postApiExecute(Session session, HeadBodyRequest request, byte[] response) {
 		// TODO API 실행 후 호출, 리턴값이 널이 아닌 경우 api응답값이 아닌 리턴 값으로 응답 처리
 		return null;
+	}
+
+	@Override
+	public void init(ServerContext context) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onConnect(Client client) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onDisconnect(Client client) {
+		// TODO Auto-generated method stub
+		
 	}
 }

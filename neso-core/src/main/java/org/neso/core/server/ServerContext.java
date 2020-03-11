@@ -1,33 +1,49 @@
 package org.neso.core.server;
 
+import org.neso.core.request.factory.RequestFactory;
 import org.neso.core.request.handler.RequestHandler;
+import org.neso.core.request.handler.task.RequestTaskExecutor;
+import org.neso.core.support.ConnectionManager;
 
 public class ServerContext {
 	
-	final int port;
-	final int maxConnection;
-	final RequestHandler requestHandler;
+	final private int port;
+	final private RequestHandler requestHandler;
+	final private RequestFactory requestFactory;
+	final private RequestTaskExecutor requestTaskExecutor;
+	final private ServerOptions options;
+	final private ConnectionManager connectionManager;
 	
-	
-	private ServerContext(int port, int maxConnection, RequestHandler requestHandler) {
+	public ServerContext(int port, RequestHandler requestHandler, RequestFactory requestFactory, RequestTaskExecutor requestTaskExecutor, ServerOptions options, ConnectionManager connectionManager) {
 		this.port = port;
-		this.maxConnection = maxConnection;
 		this.requestHandler = requestHandler;
+		this.requestFactory = requestFactory;
+		this.requestTaskExecutor = requestTaskExecutor;
+		this.options = options;
+		this.connectionManager = connectionManager;
 	}
 	
-	public static ServerContext context(int port, int maxConnection, RequestHandler requestHandler) {
-		return new ServerContext(port, maxConnection, requestHandler);
-	}
-	
-	public int getPort() {
+	public int port() {
 		return this.port;
 	}
 	
-	public RequestHandler getRequestHandler() {
+	public RequestHandler requestHandler() {
 		return this.requestHandler;
 	}
 	
-	public int maxConnection() {
-		return this.maxConnection;
+	public RequestFactory requestFactory() {
+		return this.requestFactory;
+	}
+	
+	public RequestTaskExecutor requestTaskExecutor() {
+		return this.requestTaskExecutor;
+	}
+	
+	public ServerOptions options() {
+		return this.options;
+	}
+	
+	public ConnectionManager connectionManager() {
+		return this.connectionManager;
 	}
 }

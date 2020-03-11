@@ -15,10 +15,10 @@ public abstract class BindingBodyResultApi<HEAD, BODY , RESULT> implements Api {
 		
  
 		Class<?> headClz = ClassUtils.getGeneric(getClass(), 0);
-		HEAD headObject = (HEAD) ByteBindUtils.toObject(request.getHeadBytes(), headClz, request.getRequestHandler().getCharset(), DataScope.REQUEST);
+		HEAD headObject = (HEAD) ByteBindUtils.toObject(request.getHeadBytes(), headClz, request.getSession().getServerContext().requestHandler().getCharset(), DataScope.REQUEST);
 		
 		Class<?> bodyClz = ClassUtils.getGeneric(getClass(), 1);
-		BODY bodyObject = (BODY) ByteBindUtils.toObject(request.getBodyBytes(), bodyClz, request.getRequestHandler().getCharset(), DataScope.REQUEST);
+		BODY bodyObject = (BODY) ByteBindUtils.toObject(request.getBodyBytes(), bodyClz, request.getSession().getServerContext().requestHandler().getCharset(), DataScope.REQUEST);
 		RESULT apiResult = handle(request, headObject, bodyObject);
 		
 		byte[] response = resultToBytes(apiResult);

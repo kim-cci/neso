@@ -11,9 +11,7 @@ import org.neso.core.netty.ByteBasedWriter;
 import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.Session;
-import org.neso.core.request.factory.InMemoryRequestFactory;
-import org.neso.core.request.handler.AbstractRequestHandler; 
-import org.neso.core.request.handler.task.RequestTaskThreadPool; 
+import org.neso.core.request.handler.AbstractRequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,27 +25,9 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 	private Map<String, Api> apiHandlerMap = new ConcurrentHashMap<String, Api>();
 
 	protected ServerHandler(int headerLength) { 
-		this(headerLength, DEFAULT_TASK_MAX_THREAD_CNT);
-	}
-
-	public ServerHandler(int headerLength, int maxThreads) {
 		super(headerLength);
-		setRequestTaskPool(new RequestTaskThreadPool(maxThreads));
-		setRequestFactory(new InMemoryRequestFactory(false));
 	}
 
-	@Override
-	public void onConnect(Client client) {
-		
-	}
-	
-	
-	@Override
-	public void onDisConnect(Client client) {
-		
-	}
-
- 
 	private Api apiMatch(HeadBodyRequest request) {
 		
 		String apiKey = getApiKey(request);

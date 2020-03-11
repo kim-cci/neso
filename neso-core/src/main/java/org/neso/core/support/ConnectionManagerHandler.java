@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Sharable
-public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter {
+public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter implements ConnectionManager {
  
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -35,10 +35,12 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter {
 		this.connectionRejectListener = connectionRejectListener;
 	}
 	
+	@Override
 	public int getCurruntConnectionSize() {
 		return this.connectionQueue.size();
 	}
 	
+	@Override
 	public int getMaxConnectionSize() {
 		return maxConnectionSize;
 	}

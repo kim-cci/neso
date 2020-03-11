@@ -14,18 +14,24 @@ public class ClientTest {
 		socket.connect(address); 
 		 
 		for (int i = 0; i < 1; i++) {
-	
-			socket.getOutputStream().write("30".getBytes()); 
+			Thread.sleep(2000);
+			socket.getOutputStream().write("3".getBytes()); 
+			socket.getOutputStream().flush(); 
+			Thread.sleep(2000);
+			socket.getOutputStream().write("0".getBytes()); 
 			socket.getOutputStream().flush(); 
 			
+			Thread.sleep(2000);
 			socket.getOutputStream().write("AAAAAAFAA35ABAGGZATJ35ABAAEAAk".getBytes()); 
 			socket.getOutputStream().flush(); 
 			
-			socket.getOutputStream().write("30".getBytes()); 
-			socket.getOutputStream().flush(); 
+		
 			
-			socket.getOutputStream().write("AAAAAAFAA35ABAGGZATJ35ABAAEAAk".getBytes()); 
-			socket.getOutputStream().flush(); 
+//			socket.getOutputStream().write("30".getBytes()); 
+//			socket.getOutputStream().flush(); 
+//			
+//			socket.getOutputStream().write("AAAAAAFAA35ABAGGZATJ35ABAAEAAk".getBytes()); 
+//			socket.getOutputStream().flush(); 
 			
 			byte[] responseBytes = new byte[1]; 
 			

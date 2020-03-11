@@ -46,6 +46,8 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     	}
     	logger.debug("toReadBytes length => {}", toReadBytes);
     	toReadBuf = ctx.alloc().buffer(toReadBytes);
+    			
+    	addReadTimeoutHandler(ctx);	//최초 접속시는 read상태로 보자.
     }
     
 
@@ -88,14 +90,14 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     }
     
     private void addReadTimeoutHandler(ChannelHandlerContext ctx) {
-    	if (readTimeoutMillisOnRead > 0 && ctx.channel().pipeline().get("readTimeoutOnReadHandler") == null) {
-    		ctx.channel().pipeline().addBefore("ByteLengthBasedInboundHandler", "readTimeoutOnReadHandler", new AsyncCloseReadTimeoutHandler(readTimeoutMillisOnRead, TimeUnit.MILLISECONDS, reader));
+    	if (readTimeoutMillisOnRead > 0 && ctx.channel().pipeline().get(AsyncCloseReadTimeoutHandler.class.getSimpleName()) == null) {
+    		ctx.channel().pipeline().addBefore(ByteLengthBasedInboundHandler.class.getSimpleName(), AsyncCloseReadTimeoutHandler.class.getSimpleName(), new AsyncCloseReadTimeoutHandler(readTimeoutMillisOnRead, TimeUnit.MILLISECONDS, reader));
 		}
     }
     
     private void removeReadTimeoutHandler(ChannelHandlerContext ctx) {
-    	if (readTimeoutMillisOnRead > 0 && ctx.channel().pipeline().get("readTimeoutOnReadHandler") != null) {
-			ctx.channel().pipeline().remove("readTimeoutOnReadHandler");
+    	if (readTimeoutMillisOnRead > 0 && ctx.channel().pipeline().get(AsyncCloseReadTimeoutHandler.class.getSimpleName()) != null) {
+			ctx.channel().pipeline().remove(AsyncCloseReadTimeoutHandler.class.getSimpleName());
 		}
     }
     

@@ -18,8 +18,8 @@ public abstract class BindingApi<IN, OUT> implements Api {
 	@SuppressWarnings("unchecked")
 	@Override
 	final public byte[] handle(HeadBodyRequest request) throws Exception {
- 
-		IN bodyObject = (IN) ByteBindUtils.toObject(request.getAllBytes(), ClassUtils.getGeneric(getClass()), request.getRequestHandler().getCharset(), DataScope.REQUEST);
+		
+		IN bodyObject = (IN) ByteBindUtils.toObject(request.getAllBytes(), ClassUtils.getGeneric(getClass()), request.getSession().getServerContext().requestHandler().getCharset(), DataScope.REQUEST);
 		OUT response = handle(request, bodyObject);
 		
 		return ByteBindUtils.toBytes(response);

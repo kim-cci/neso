@@ -3,10 +3,9 @@ package org.neso.core.netty;
 import static io.netty.util.internal.StringUtil.NEWLINE;
 
 
-
 import org.neso.core.request.Client;
-import org.neso.core.request.handler.RequestHandler;
 import org.neso.core.request.internal.OperableHeadBodyRequest;
+import org.neso.core.server.ServerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,37 +16,32 @@ import io.netty.buffer.Unpooled;
 public class HeadBodyReader implements ByteLengthBasedReader {
 	
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
-	
-	final private RequestHandler requestHandler;
-	
+	 
 	final private Client client;
 	
-    final private boolean logOnOff;
-    
-	final private int maxBodyBytesLength;
+	final private ServerContext serverContext;
 	
 	private OperableHeadBodyRequest currentRequest;
 	
 	private boolean readable = true;
 
 	
-	public HeadBodyReader(RequestHandler requestHandler, Client client, boolean logOnOff, int maxBodyBytesLength) {
-    	this.requestHandler = requestHandler;
-    	this.client = client;
-    	this.currentRequest =  requestHandler.getRequestFactory().newHeadBodyRequest(client, requestHandler);
-    	this.logOnOff = logOnOff;
-    	this.maxBodyBytesLength = maxBodyBytesLength;
+	public HeadBodyReader(Client client, ServerContext serverContext) {
+		this.client = client;
+		this.serverContext = serverContext;
+		
     	init();
 	}
 	
 	@Override
 	public void init() {
-		requestHandler.onConnect(client);
+		this.currentRequest = serverContext.requestFactory().newHeadBodyRequest(client);
+		serverContext.requestHandler().onConnect(client);
 	}
 
 	@Override
 	public void destroy() {
-		requestHandler.onDisConnect(client);
+		serverContext.requestHandler().onDisconnect(client);
 	}
     
     @Override
@@ -62,7 +56,7 @@ public class HeadBodyReader implements ByteLengthBasedReader {
     	}
     	
     	if (!currentRequest.isReadedHead()) {
-    		int headLength = requestHandler.getHeadLength();
+    		int headLength = serverContext.requestHandler().getHeadLength();
     		if (headLength < 1) {
     			throw new RuntimeException("Header length cannot be zero or a negative number ");
     		}
@@ -70,10 +64,10 @@ public class HeadBodyReader implements ByteLengthBasedReader {
     		
 		} else { //if (!currentRequest.isReadedBody()) 
 			
-			int bodyLength = requestHandler.getBodyLength(currentRequest);
+			int bodyLength = serverContext.requestHandler().getBodyLength(currentRequest);
 			
-			if (maxBodyBytesLength > 0) {
-				if (maxBodyBytesLength < bodyLength) {
+			if (serverContext.options().getMaxRequestBodyLength() > 0) {
+				if (serverContext.options().getMaxRequestBodyLength() < bodyLength) {
 					throw new RuntimeException("Too long body length..");
 				}
 			}
@@ -87,7 +81,7 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 
 		if (!currentRequest.isReadedHead()) {
 			
-			if (logOnOff) {
+			if (serverContext.options().isInoutLogging()) {
 				log("HEADER RECEIVED", readedBuf);
 			}
 			
@@ -106,7 +100,7 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 			return false;
 		} else { //if (!currentRequest.isReadedBody()) 
 			
-			if (logOnOff) {
+			if (serverContext.options().isInoutLogging()) {
 				log("BODY RECEIVED", readedBuf);
 			}
 			
@@ -116,10 +110,10 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 			
 			currentRequest.setBodyBytes(readedBuf);
 			
-			requestHandler.onRequest(client, currentRequest);
+			serverContext.requestHandler().onRequest(client, currentRequest);
     		
-    		if (requestHandler.getRequestFactory().isRepeatableReceiveRequest()) {
-    			this.currentRequest = requestHandler.getRequestFactory().newHeadBodyRequest(client, requestHandler);
+    		if (serverContext.options().isConnectionOriented()) {
+    			this.currentRequest = serverContext.requestFactory().newHeadBodyRequest(client);
 			} else {
 				readable = false;
 			}
@@ -146,7 +140,7 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 	public void onReadException(Throwable th) {
 
     	try {
-    		requestHandler.onExceptionRead(client, th);
+    		serverContext.requestHandler().onExceptionRead(client, th);
     	}catch (Exception e) {
 			logger.error("occurred exception.. requestHandler's onExceptionRead", e);
 		}

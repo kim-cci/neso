@@ -7,7 +7,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.neso.core.netty.BufUtils;
 import org.neso.core.request.Client;
 import org.neso.core.request.Session;
-import org.neso.core.request.handler.RequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,13 +37,10 @@ public class InMemoryHeadBodyRequest implements OperableHeadBodyRequest {
     
     private ByteBuf bodyByteBuf;
     
-    private RequestHandler requestHandler;
-    
     private Client client;
     
-    public InMemoryHeadBodyRequest(RequestHandler requestHandler, Client client) {
+    public InMemoryHeadBodyRequest(Client client) {
     	this.requestTime = System.currentTimeMillis();
-    	this.requestHandler = requestHandler;
 	}
     
     @Override
@@ -157,12 +153,7 @@ public class InMemoryHeadBodyRequest implements OperableHeadBodyRequest {
 			throw new RuntimeException("Not read body..");
 		}
 	}
-	
-	@Override
-	public RequestHandler getRequestHandler() {
-		return requestHandler;
-	}
-	
+
 	
 	@Override
 	public void release() {

@@ -2,9 +2,11 @@ package org.neso.api.server.handler;
 
 import java.lang.reflect.Method;
 
+import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.HeadRequest;
 import org.neso.core.request.Session;
+import org.neso.core.server.ServerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +62,18 @@ public class ServerHandlerAdapter extends ServerHandler {
         }
     }
 
-    
+	@Override
+	public void onConnect(Client client) {
+		
+	}
+	
+	
+	@Override
+	public void onDisconnect(Client client) {
+		
+	}
+
+ 
     @Override
     public int getBodyLength(HeadRequest request) {
     	return 0;
@@ -94,5 +107,10 @@ public class ServerHandlerAdapter extends ServerHandler {
 	@Override
 	protected byte[] exceptionCaughtDoRequest(Session session, HeadBodyRequest request, Throwable exception) {
 		return null;
+	}
+
+	@Override
+	public void init(ServerContext context) {
+		
 	}
 }

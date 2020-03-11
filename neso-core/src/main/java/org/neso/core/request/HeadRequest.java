@@ -1,6 +1,5 @@
 package org.neso.core.request;
 
-import org.neso.core.request.handler.RequestHandler;
 
 public interface HeadRequest {
 	
@@ -16,7 +15,4 @@ public interface HeadRequest {
 	public boolean removeAttribute(String key);
 	
 	public <T> T getAttribute(String key);
-	
-	public RequestHandler getRequestHandler();
-	
 }

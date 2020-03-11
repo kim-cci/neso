@@ -5,17 +5,11 @@ import java.nio.charset.Charset;
 import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.HeadRequest;
-import org.neso.core.request.factory.RequestFactory;
-import org.neso.core.request.handler.task.RequestTaskPool;
 import org.neso.core.server.ServerContext;
 
 public interface RequestHandler {
 	
 	public Charset getCharset();
-
-	public RequestTaskPool getRequestTaskPool();
-	
-	public RequestFactory getRequestFactory();
 	
 	public void init(ServerContext context);
 	
@@ -61,7 +55,7 @@ public interface RequestHandler {
      * 접속 종료시 호출
      * @param client
      */
-    public void onDisConnect(Client client);
+    public void onDisconnect(Client client);
     
     
     /**
