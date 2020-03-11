@@ -1,11 +1,20 @@
 package org.neso.core.request.handler.task;
 
+import io.netty.util.concurrent.DefaultThreadFactory;
+
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class SynchronousRequestTaskThreadExecutor implements RequestTaskExecutor {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+
+public class SynchronousRequestTaskThreadExecutor implements RequestTaskExecutor {
+	
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	private ThreadPoolExecutor tp;
 	private final int max;
 	
@@ -18,7 +27,9 @@ public class SynchronousRequestTaskThreadExecutor implements RequestTaskExecutor
 		if (coreThreadSize > max) {
 			coreThreadSize = max;
 		}
-		this.tp = new ThreadPoolExecutor(coreThreadSize,  max, 2000l, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+		this.tp = new ThreadPoolExecutor(coreThreadSize,  max, 
+				2000l, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>()
+				, new DefaultThreadFactory(getClass(), true));
 		this.max = max;
 	}
 	
@@ -33,14 +44,30 @@ public class SynchronousRequestTaskThreadExecutor implements RequestTaskExecutor
 	}
 	
 	@Override
-	public synchronized boolean registerTask(RequestTask task) {
-		boolean isRegTask = false;
-
-		if (tp.getMaximumPoolSize() > tp.getActiveCount()) {
+	public  boolean registerTask(RequestTask task) {
+		try {
 			tp.submit(task);
-			isRegTask = true;
+			return true;
+		} catch (RejectedExecutionException ree) {
+			return false;
 		}
+	}
+	
+	@Override
+	public void shutdown() {
+		//TODO 검증
+		logger.info("SynchronousRequestTaskThreadExecutor (current task count={})", tp.getTaskCount());
+		tp.shutdown();
+		try {
+			if (!tp.isShutdown() && !tp.awaitTermination(5, TimeUnit.SECONDS)) {
 
-		return isRegTask;
+				if (!tp.isShutdown() && !tp.awaitTermination(5, TimeUnit.SECONDS)) {
+					logger.info("shutdown fail...");
+				}
+			}
+		} catch (InterruptedException e) {
+			
+			e.printStackTrace();
+		}
 	}
 }

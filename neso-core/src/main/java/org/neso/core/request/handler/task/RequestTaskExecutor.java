@@ -8,4 +8,6 @@ public interface RequestTaskExecutor {
 	public int getMaxExecuteSize();
 	
 	public boolean registerTask(RequestTask task);
+	
+	public void shutdown();
 }

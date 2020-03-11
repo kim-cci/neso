@@ -14,25 +14,20 @@ public class ClientTest {
 		socket.connect(address); 
 		 
 		for (int i = 0; i < 1; i++) {
-			Thread.sleep(2000);
-			socket.getOutputStream().write("3".getBytes()); 
+
+			socket.getOutputStream().write("30".getBytes()); 
 			socket.getOutputStream().flush(); 
-			Thread.sleep(2000);
-			socket.getOutputStream().write("0".getBytes()); 
-			socket.getOutputStream().flush(); 
-			
-			Thread.sleep(2000);
+
 			socket.getOutputStream().write("AAAAAAFAA35ABAGGZATJ35ABAAEAAk".getBytes()); 
 			socket.getOutputStream().flush(); 
 			
-		
+			socket.getOutputStream().write("30".getBytes()); 
+			socket.getOutputStream().flush(); 
 			
-//			socket.getOutputStream().write("30".getBytes()); 
-//			socket.getOutputStream().flush(); 
-//			
-//			socket.getOutputStream().write("AAAAAAFAA35ABAGGZATJ35ABAAEAAk".getBytes()); 
-//			socket.getOutputStream().flush(); 
+			socket.getOutputStream().write("AAAAAAFAA35ABAGGZATJ35ABAAEAAk".getBytes()); 
+			socket.getOutputStream().flush(); 
 			
+
 			byte[] responseBytes = new byte[1]; 
 			
 			for (int j = 0; j < 60; j++) {

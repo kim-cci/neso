@@ -37,4 +37,9 @@ public class IoWorkThreadExecutor implements RequestTaskExecutor {
 		currentCount.decrementAndGet();
 		return true;
 	}
+
+	@Override
+	public void shutdown() {
+		
+	}
 }

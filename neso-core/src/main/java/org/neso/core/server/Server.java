@@ -161,8 +161,18 @@ public class Server {
                 }
             });
             
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+    			@Override
+    			public void run() {
+    				cf.channel().close();
+    			}
+    		});
+
             cf.channel().closeFuture().sync().addListener(new GenericFutureListener<ChannelFuture>() {
                 public void operationComplete(ChannelFuture future) throws Exception {
+                	
+                	context.requestTaskExecutor().shutdown();
+                	
                     if (future.isSuccess()) {
                         logger.info("socket server shutdown .... bind port={}", port);
                     } else {
@@ -170,13 +180,6 @@ public class Server {
                     }
                 } 
             });
-            
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-    			@Override
-    			public void run() {
-    				cf.channel().close();
-    			}
-    		});
         } catch (Exception e) {
         	throw new RuntimeException("server start fail", e);
             
