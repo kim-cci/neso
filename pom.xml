@@ -11,6 +11,5 @@
   <modules>
     <module>neso-core</module>
     <module>neso-sample</module>
-    <module>neso-spring</module>
   </modules>
 </project>
