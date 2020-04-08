@@ -1,4 +1,4 @@
-package org.neso.sample.chapter4;
+package org.neso.sample.chapter4.inherit;
 
 import org.neso.api.server.handler.ServerHandler;
 import org.neso.core.request.Client;
@@ -57,19 +57,16 @@ public class InheritanceServerHandler extends ServerHandler {
 
 	@Override
 	public void init(ServerContext context) {
-		// TODO Auto-generated method stub
-		
+		// TODO 서버핸들러 로딩 시
 	}
 
 	@Override
 	public void onConnect(Client client) {
-		// TODO Auto-generated method stub
-		
+		// TODO 클라이언트 접속 시
 	}
 
 	@Override
 	public void onDisconnect(Client client) {
-		// TODO Auto-generated method stub
-		
+		// TODO 클라이언트 접속 종료 시
 	}
 }

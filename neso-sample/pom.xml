@@ -7,7 +7,8 @@
     	<artifactId>neso-projects</artifactId>
     	<version>0.9.1</version>
   	</parent>
-  
+  	
+  	<packaging>jar</packaging>
   	<artifactId>neso-sample</artifactId>
   	<name>neso-sample</name>
   	<url>http://maven.apache.org</url>
@@ -32,7 +33,14 @@
             <artifactId>lombok</artifactId>
             <version>1.16.2</version>
             <scope>provided</scope>
-        </dependency>  
+        </dependency>
+		
+		<!-- spring 연동을 위해 -->
+		<dependency>
+			<groupId>org.springFramework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>4.0.5.RELEASE</version>
+		</dependency>
   	</dependencies>
   
   	<build>
@@ -64,8 +72,24 @@
                         </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<configuration>
+						<archive>
+							<index>true</index>
+							<manifest>
+								<mainClass>org.neso.sample.chapter5.Runner</mainClass>
+							</manifest>
+						</archive>
+						<descriptorRefs>
+							<descriptorRef>jar-with-dependencies</descriptorRef>
+						</descriptorRefs>
+					</configuration>
+				</plugin>
             </plugins>
         </pluginManagement>
+        
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

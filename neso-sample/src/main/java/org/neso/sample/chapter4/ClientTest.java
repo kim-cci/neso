@@ -16,7 +16,7 @@ public class ClientTest {
 		sb.append("04search"); //헤더
 		sb.append("u001"); //바디
  
-		ClientUtil.oneRequestClose(sb.toString(), 4);
+		ClientUtil.oneRequestFixedResClose(10001, sb.toString(), 4);
 	}
 	
 	
@@ -26,7 +26,7 @@ public class ClientTest {
 		sb.append("04sign  "); //헤더
 		sb.append("john"); //바디
  
-		ClientUtil.oneRequestClose(sb.toString(), 4);
+		ClientUtil.oneRequestFixedResClose(10001, sb.toString(), 4);
 	}
 }
 

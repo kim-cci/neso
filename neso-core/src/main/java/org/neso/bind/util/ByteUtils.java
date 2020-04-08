@@ -57,7 +57,7 @@ public class ByteUtils {
         return rv;
     }
     
-    public static byte[] newEmptyArray(int length) {
+    public static byte[] newArrayFillEmpty(int length) {
         byte[] ret = new byte[length];
         byte fillChar = ' ';
         Arrays.fill(ret, fillChar);
@@ -65,8 +65,16 @@ public class ByteUtils {
     }
     
     public static byte[] insertAt(byte[] origin, int offset, byte[] toInsertArr) {
+    	if (offset < 0 ) {
+    		throw new IllegalArgumentException("offset more than 0");
+    	}
+  
+    	if (offset > origin.length ) {
+    		throw new IllegalArgumentException("offset over srcArray exceed");
+    	}
+    	
     	if ((offset + toInsertArr.length) > origin.length) {
-    		throw new ArrayIndexOutOfBoundsException("not enough origin arr length to insert");
+    		throw new IllegalArgumentException("not enough origin arr length to insert");
     	}
     	byte[] response = new byte[0];
     	response = ArrayUtils.addAll(response, ArrayUtils.subarray(origin, 0, offset));

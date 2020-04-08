@@ -62,14 +62,7 @@ public class Server {
     	this.requestHandler = requestHandler;
     	this.port = port;
 	}
-     
-    protected RequestHandler getRequestHandler() {
-		return requestHandler;
-	}
-    
-    public int getPort() {
-    	return port;
-    }
+
     
     public Server requestTaskExecutorPoolSize(int requestTaskExecutorPoolSize) {
     	this.requestTaskExecutorPoolSize = requestTaskExecutorPoolSize;
@@ -208,14 +201,14 @@ public class Server {
     	
 		ConnectionManagerHandler connectionManagerHandler = maxConnections > 0 ? new ConnectionManagerHandler(maxConnections) : null;
 		if (requestHandler instanceof ConnectionRejectListener) {
-			connectionManagerHandler.setConnectionRejectListener((ConnectionRejectListener) getRequestHandler());
+			connectionManagerHandler.setConnectionRejectListener((ConnectionRejectListener) requestHandler);
 		}
 		
 		
     	ServerOptions options = new ServerOptions(connectionOriented, requestTaskExecutorPoolSize, readTimeoutMillisOnRead, writeTimeoutMillis, maxConnections, maxRequestBodyLength, inoutLogging);
     	
     	//TODO 서버옵션 로그 출력
-    	this.context = new ServerContext(getPort(), getRequestHandler(), requestFactory, requestTaskExecutor, options, connectionManagerHandler);
+    	this.context = new ServerContext(port, requestHandler, requestFactory, requestTaskExecutor, options, connectionManagerHandler);
     }
     
     private RequestTaskExecutor createRequestTaskExecutor() {

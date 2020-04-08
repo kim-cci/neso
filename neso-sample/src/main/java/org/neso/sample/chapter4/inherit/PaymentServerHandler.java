@@ -1,4 +1,4 @@
-package org.neso.sample.chapter4;
+package org.neso.sample.chapter4.inherit;
 
 import org.neso.api.server.handler.ServerHandlerAdapter;
 import org.neso.core.request.HeadRequest;
@@ -8,13 +8,13 @@ import org.slf4j.LoggerFactory;
 /**
  * 결제 서버
  */
-public class PaymentServer extends ServerHandlerAdapter {
+public class PaymentServerHandler extends ServerHandlerAdapter {
 
 	final Logger logSystem = LoggerFactory.getLogger(this.getClass());
 	
 	private static final int HEAD_LENGTH = 6;
 	
-	public PaymentServer() {
+	public PaymentServerHandler() {
 		super(HEAD_LENGTH);
 	}
 	

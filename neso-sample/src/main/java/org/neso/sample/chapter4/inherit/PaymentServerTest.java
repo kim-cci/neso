@@ -1,4 +1,4 @@
-package org.neso.sample.chapter4;
+package org.neso.sample.chapter4.inherit;
 
 import org.neso.api.server.handler.ServerHandler;
 import org.neso.core.server.Server;
@@ -7,7 +7,7 @@ public class PaymentServerTest {
 
 	public static void main(String[] args) {
 		
-		ServerHandler sh = new PaymentServer();
+		ServerHandler sh = new PaymentServerHandler();
 		sh.registApi("pay_request", request -> { //결제 요청 API
 			return "OK".getBytes();
 		});
