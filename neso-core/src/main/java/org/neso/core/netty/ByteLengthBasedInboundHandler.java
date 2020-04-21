@@ -3,6 +3,7 @@ package org.neso.core.netty;
 import java.util.concurrent.TimeUnit;
 
 import org.neso.core.exception.OverReadBytesException;
+import org.neso.core.netty.ByteLengthBasedReader.ReaderStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,15 +40,19 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-
+    	
+    	reader.init();
+    	
     	int toReadBytes = reader.getToReadBytes();
     	if (toReadBytes < 1) {
     		throw new RuntimeException("cant read ...");
     	}
     	logger.debug("toReadBytes length => {}", toReadBytes);
     	toReadBuf = ctx.alloc().buffer(toReadBytes);
-    			
-    	addReadTimeoutHandler(ctx);	//최초 접속시는 read상태로 보자.
+    	
+    	if (reader.getStatus() == ReaderStatus.ING) {
+    		addReadTimeoutHandler(ctx);
+    	}
     }
     
 
@@ -60,7 +65,7 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
 		        
 				while (inputBuf.isReadable()) {
 
-		    		if (reader.isClose()) {	//데이터는 더 들어왔는데... 읽기가 종료되었다..
+		    		if (reader.getStatus() == ReaderStatus.CLOSE) {	//데이터는 더 들어왔는데... 읽기가 종료되었다..
 			    		
 			    		byte[] overBytes = BufUtils.copyToByteArray(inputBuf);
 	    		    	throw new OverReadBytesException(overBytes);
@@ -72,7 +77,9 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
 	    	        	inputBuf.readBytes(toReadBuf, toReadlength);
 	    	        	 
 	    	        	if (!toReadBuf.isWritable()) {	//읽어야 할 바이트를 다 읽었다면..
-	    	        		if (reader.onRead(toReadBuf.copy())) {
+	    	        		reader.onRead(toReadBuf.copy());
+	    	        		
+	    	        		if (reader.getStatus() != ReaderStatus.ING) {
 	    	        			removeReadTimeoutHandler(ctx);
 	    	        		}
 	    	        		

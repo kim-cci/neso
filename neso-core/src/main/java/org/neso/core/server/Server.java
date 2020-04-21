@@ -19,8 +19,8 @@ import org.neso.core.netty.ClientAgent;
 import org.neso.core.request.factory.InMemoryRequestFactory;
 import org.neso.core.request.factory.RequestFactory;
 import org.neso.core.request.handler.RequestHandler;
-import org.neso.core.request.handler.task.RequestTaskExecutor;
-import org.neso.core.request.handler.task.SynchronousRequestTaskThreadExecutor;
+import org.neso.core.request.handler.task.RequestExecutor;
+import org.neso.core.request.handler.task.BasicRequestThreadExecutor;
 import org.neso.core.support.ConnectionManagerHandler;
 import org.neso.core.support.ConnectionRejectListener;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ public class Server {
     private int maxConnections = -1;
     
 	//private int readTimeoutMillis = -1;		//io스레드가 슬립(작업중)이라면 스케쥴이 실행이 안되어서 타임아웃이 안먹힌다. 먹힐려면.. 그 다음 파이프라인이 새로운 스레드그룹이어야 하는데...이 구조는 아니니...
-	private int readTimeoutMillisOnRead = -1;
+	private int readTimeoutMillisOnRead = 5000;
 	
 	private int writeTimeoutMillis = 2000;
 	
@@ -50,9 +50,9 @@ public class Server {
 	
     private int ioThreads = 0;	//0일 경우 core * 2 //최적화
     
-    private int requestTaskExecutorPoolSize = 100;
+    private int maxRequests = 100;
     
-    private Class<? extends RequestTaskExecutor> requestTaskExecutorType = SynchronousRequestTaskThreadExecutor.class;
+    private Class<? extends RequestExecutor> requestExecutorType = BasicRequestThreadExecutor.class;
 	
     private ConnectionManagerHandler connectionManagerHandler;
     
@@ -64,13 +64,13 @@ public class Server {
 	}
 
     
-    public Server requestTaskExecutorPoolSize(int requestTaskExecutorPoolSize) {
-    	this.requestTaskExecutorPoolSize = requestTaskExecutorPoolSize;
+    public Server maxRequests(int maxRequests) {
+    	this.maxRequests = maxRequests;
     	return this;
     }
 
-    public Server readTimeoutMillisOnReadStatus(int readTimeoutMillisOnRead) {
-    	this.readTimeoutMillisOnRead = readTimeoutMillisOnRead;
+    public Server readTimeout(int readTimeoutMillis) {
+    	this.readTimeoutMillisOnRead = readTimeoutMillis;
     	return this;
     }
     
@@ -103,21 +103,22 @@ public class Server {
     	return this;
     }
     
-    public Server connectionless() {
-    	this.connectionOriented = false;
-    	return this;
-    }
-    
     public Server connectionOriented() {
     	this.connectionOriented = true;
     	return this;
     }
     
-    public Server requestTaskExecutorType(Class<? extends RequestTaskExecutor> requestTaskExecutorType) {
-    	this.requestTaskExecutorType = requestTaskExecutorType;
+    public Server requestExecutorType(Class<? extends RequestExecutor> executorClz) {
+    	this.requestExecutorType = executorClz;
     	return this;
     }
     
+    @Deprecated
+    public Server requestExecutorType(Class<? extends RequestExecutor> executorClz, Class<?>... parameterTypes) {
+    	this.requestExecutorType = executorClz;
+    	return this;
+    }
+
     
     public void start() {
     	
@@ -188,11 +189,11 @@ public class Server {
 
     protected void initializerServerStart() {
     	
-    	RequestTaskExecutor requestTaskExecutor = createRequestTaskExecutor();
+    	RequestExecutor requestTaskExecutor = createRequestTaskExecutor();
     	//TODO requestTaskExecutor 로그 출력
     	
-		if (requestTaskExecutor.isRunIoWorkThread()) {
-			ioThreads = requestTaskExecutor.getMaxExecuteSize() + 10; //io스레드가 request처리 동시실행숫자보다 작으면 io스레드에서 병목이 발생하므로.. io스레드가 무조건 커야한다.
+		if (requestTaskExecutor.isRunIoThread()) {
+			ioThreads = requestTaskExecutor.getMaxRequets() + 10; //io스레드가 request처리 동시실행숫자보다 작으면 io스레드에서 병목이 발생하므로.. io스레드가 무조건 커야한다.
 		} else {
 			//io thread는 네티 전략 따름 -> 0
 		}
@@ -205,18 +206,20 @@ public class Server {
 		}
 		
 		
-    	ServerOptions options = new ServerOptions(connectionOriented, requestTaskExecutorPoolSize, readTimeoutMillisOnRead, writeTimeoutMillis, maxConnections, maxRequestBodyLength, inoutLogging);
+    	ServerOptions options = new ServerOptions(connectionOriented, maxRequests, readTimeoutMillisOnRead, writeTimeoutMillis, maxConnections, maxRequestBodyLength, inoutLogging);
     	
     	//TODO 서버옵션 로그 출력
     	this.context = new ServerContext(port, requestHandler, requestFactory, requestTaskExecutor, options, connectionManagerHandler);
     }
     
-    private RequestTaskExecutor createRequestTaskExecutor() {
+    private RequestExecutor createRequestTaskExecutor() {
     	try {
     
-        	Constructor<? extends RequestTaskExecutor> cons = requestTaskExecutorType.getConstructor(new Class[]{int.class});
-        	
-        	return cons.newInstance(requestTaskExecutorPoolSize);
+        	//Constructor<? extends RequestTaskExecutor> cons = requestExecutorType.getConstructor(new Class[]{int.class});
+    		Constructor<? extends RequestExecutor> cons = requestExecutorType.getConstructor();
+        	RequestExecutor ins = cons.newInstance();
+        	ins.init(maxRequests);
+        	return ins;
     	} catch (Exception e) {
     		throw new RuntimeException("requestTaskExecutor create error", e);
     	}

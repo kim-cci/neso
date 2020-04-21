@@ -4,7 +4,7 @@ public class ServerOptions {
 	
 	final private boolean connectionOriented;
 	
-	final private int requestTaskExecutorPoolSize;
+	final private int requestTaskPoolSize;
 	
 	final private int readTimeoutMillisOnRead;
 	
@@ -17,11 +17,11 @@ public class ServerOptions {
 	final private boolean inoutLogging;
 
 	
-    public ServerOptions(boolean connectionOriented, int requestTaskExecutorPoolSize, int readTimeoutMillisOnRead, int writeTimeoutMillis, 
+    public ServerOptions(boolean connectionOriented, int requestTaskPoolSize, int readTimeoutMillisOnRead, int writeTimeoutMillis, 
     		int maxConnections, int maxRequestBodyLength, boolean inoutLogging) {
     	
     	this.connectionOriented = connectionOriented;
-    	this.requestTaskExecutorPoolSize = requestTaskExecutorPoolSize;
+    	this.requestTaskPoolSize = requestTaskPoolSize;
     	this.readTimeoutMillisOnRead = readTimeoutMillisOnRead;
     	this.writeTimeoutMillis = writeTimeoutMillis;
     	this.maxConnections = maxConnections;
@@ -34,8 +34,8 @@ public class ServerOptions {
 		return connectionOriented;
 	}
 
-	public int getRequestTaskExecutorPoolSize() {
-		return requestTaskExecutorPoolSize;
+	public int getRequestExecutorPoolSize() {
+		return requestTaskPoolSize;
 	}
 
 	public int getReadTimeoutMillisOnRead() {

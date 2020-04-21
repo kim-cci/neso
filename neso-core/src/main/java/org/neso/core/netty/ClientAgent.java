@@ -46,7 +46,7 @@ public class ClientAgent extends SessionImplClient {
 	}
 	
 	private void init() {
-		this.headBodyRequestReader = new HeadBodyReader(this, getServerContext());
+		this.headBodyRequestReader = new HeadBodyRequestReader(this, getServerContext());
     	this.writer = new Bbw();
 	}
 	

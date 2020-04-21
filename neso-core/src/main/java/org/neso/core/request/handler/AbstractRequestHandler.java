@@ -60,7 +60,7 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 					RequestRejectListener listener = (RequestRejectListener) client.getServerContext().requestHandler();
 				
 					try {
-						rejectMessage = listener.onRequestReject(client.getServerContext(), client.getServerContext().requestTaskExecutor().getMaxExecuteSize(), request);
+						rejectMessage = listener.onRequestReject(client.getServerContext(), client.getServerContext().requestTaskExecutor().getMaxRequets(), request);
 					} catch (Exception e) {
 						logger.error("occurred requestRejectListner's onRequestReject", e);
 					}

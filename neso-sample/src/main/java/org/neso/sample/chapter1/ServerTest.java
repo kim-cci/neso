@@ -14,8 +14,9 @@ public class ServerTest {
 			
 			byte[] response = request.getBodyBytes(); 
 			Arrays.sort(response); 
+			Thread.sleep(5000);
 			return response; 
 		
-		}), 10001).start(); 
+		}), 10001).connectionOriented().readTimeout(3000).start(); 
 	}
 }

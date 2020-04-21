@@ -115,7 +115,8 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 	@Override
 	final public void onExceptionRead(Client client, Throwable t) {
 		
-		logger.debug("onExceptionRead occured", t);
+		
+		logger.debug("An error occurred while read : ", t);
 		if (client.isConnected()) {
 			byte[] errorMessage = null;
 			try {
@@ -144,7 +145,7 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 	
 	@Override
 	final public void onExceptionWrite(Client client, Throwable exception) {
-		logger.debug("onExceptionWrite occured", exception);
+		logger.debug("An error occurred while white : ", exception);
 		if (client.isConnected()) {
 			 
 			try {

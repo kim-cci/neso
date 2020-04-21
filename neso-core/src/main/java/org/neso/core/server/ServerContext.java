@@ -2,7 +2,7 @@ package org.neso.core.server;
 
 import org.neso.core.request.factory.RequestFactory;
 import org.neso.core.request.handler.RequestHandler;
-import org.neso.core.request.handler.task.RequestTaskExecutor;
+import org.neso.core.request.handler.task.RequestExecutor;
 import org.neso.core.support.ConnectionManager;
 
 public class ServerContext {
@@ -10,11 +10,11 @@ public class ServerContext {
 	final private int port;
 	final private RequestHandler requestHandler;
 	final private RequestFactory requestFactory;
-	final private RequestTaskExecutor requestTaskExecutor;
+	final private RequestExecutor requestTaskExecutor;
 	final private ServerOptions options;
 	final private ConnectionManager connectionManager;
 	
-	public ServerContext(int port, RequestHandler requestHandler, RequestFactory requestFactory, RequestTaskExecutor requestTaskExecutor, ServerOptions options, ConnectionManager connectionManager) {
+	public ServerContext(int port, RequestHandler requestHandler, RequestFactory requestFactory, RequestExecutor requestTaskExecutor, ServerOptions options, ConnectionManager connectionManager) {
 		this.port = port;
 		this.requestHandler = requestHandler;
 		this.requestFactory = requestFactory;
@@ -35,7 +35,7 @@ public class ServerContext {
 		return this.requestFactory;
 	}
 	
-	public RequestTaskExecutor requestTaskExecutor() {
+	public RequestExecutor requestTaskExecutor() {
 		return this.requestTaskExecutor;
 	}
 	

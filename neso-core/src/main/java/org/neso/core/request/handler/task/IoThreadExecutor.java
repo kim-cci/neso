@@ -2,33 +2,20 @@ package org.neso.core.request.handler.task;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class IoWorkThreadExecutor implements RequestTaskExecutor {
+public class IoThreadExecutor extends AbstractRequestExecutor {
 	
-	final private int maxCount;
- 
 	private AtomicInteger currentCount = new AtomicInteger(0);
 	
-	public IoWorkThreadExecutor(int maxCount) {
-		if (maxCount < 1) {
-			throw new RuntimeException("max count more than zero");
-		}
-		this.maxCount = maxCount;
-	}
-	
 	@Override
-	public boolean isRunIoWorkThread() {
+	public boolean isRunIoThread() {
 		return true;
 	}
 	
-	@Override
-	public int getMaxExecuteSize() {
-		return this.maxCount;
-	}
 	
 	@Override
 	public boolean registerTask(RequestTask task) {
 		
-		if (currentCount.incrementAndGet() > maxCount) {
+		if (currentCount.incrementAndGet() > getMaxRequets()) {
 			currentCount.decrementAndGet();
 			return false;
 		}

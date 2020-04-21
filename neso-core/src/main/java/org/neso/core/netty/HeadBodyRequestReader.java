@@ -13,7 +13,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 
-public class HeadBodyReader implements ByteLengthBasedReader {
+public class HeadBodyRequestReader implements ByteLengthBasedReader {
 	
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 	 
@@ -23,20 +23,19 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 	
 	private OperableHeadBodyRequest currentRequest;
 	
-	private boolean readable = true;
+	private ReaderStatus readStatus = null;
 
 	
-	public HeadBodyReader(Client client, ServerContext serverContext) {
+	public HeadBodyRequestReader(Client client, ServerContext serverContext) {
 		this.client = client;
 		this.serverContext = serverContext;
-		
-    	init();
 	}
 	
 	@Override
 	public void init() {
 		this.currentRequest = serverContext.requestFactory().newHeadBodyRequest(client);
 		serverContext.requestHandler().onConnect(client);
+		readStatus = serverContext.options().isConnectionOriented()? ReaderStatus.STANBY: ReaderStatus.ING;
 	}
 
 	@Override
@@ -44,14 +43,14 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 		serverContext.requestHandler().onDisconnect(client);
 	}
     
-    @Override
-    public boolean isClose() {
-    	return !readable;
-    }
+	@Override
+	public ReaderStatus getStatus() {
+		return readStatus;
+	}
 	
     @Override
     public int getToReadBytes() {
-    	if (isClose()) {
+    	if (ReaderStatus.CLOSE == readStatus) {
     		return 0; //throw new RuntimeException("reader is closed...");
     	}
     	
@@ -77,8 +76,13 @@ public class HeadBodyReader implements ByteLengthBasedReader {
     }
 
     @Override
-    public boolean onRead(ByteBuf readedBuf) throws Exception {
-
+    public void onRead(ByteBuf readedBuf) throws Exception {
+    	
+    	if (ReaderStatus.CLOSE == readStatus) {
+    		throw new RuntimeException("reader is closed...");
+    	}
+    	
+    	
 		if (!currentRequest.isReadedHead()) {
 			
 			if (serverContext.options().isInoutLogging()) {
@@ -95,9 +99,10 @@ public class HeadBodyReader implements ByteLengthBasedReader {
                 /**
                  * 바디가 0인 경우, 더 읽어야 할 필요가 없다면.. request 
                  **/
-				return onRead(Unpooled.directBuffer(0));
+				onRead(Unpooled.directBuffer(0));
 			}
-			return false;
+			
+			readStatus = ReaderStatus.ING;
 		} else { //if (!currentRequest.isReadedBody()) 
 			
 			if (serverContext.options().isInoutLogging()) {
@@ -112,13 +117,12 @@ public class HeadBodyReader implements ByteLengthBasedReader {
 			
 			serverContext.requestHandler().onRequest(client, currentRequest);
     		
-    		if (serverContext.options().isConnectionOriented()) {
+    		if (serverContext.options().isConnectionOriented()) {	//요청을 계속 받을 수 있다면. 새 리퀘스트를 만들어 놓고..
     			this.currentRequest = serverContext.requestFactory().newHeadBodyRequest(client);
+    			readStatus = ReaderStatus.STANBY;
 			} else {
-				readable = false;
+				readStatus = ReaderStatus.CLOSE;
 			}
-        	
-    		return true;
 		}
     }
     
