@@ -6,24 +6,23 @@ import org.neso.api.server.handler.ServerHandlerAdapter;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.HeadRequest;
 import org.neso.core.request.Session;
-import org.neso.core.support.ConnectionRejectListener;
+import org.neso.core.server.ServerContext;
+import org.neso.core.support.RequestRejectListener;
 import org.neso.sample.chapter5.ResponseUtils;
 import org.neso.sample.chapter5.externe.Bo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PayServerHandler extends ServerHandlerAdapter implements ConnectionRejectListener {
+public class PayServerHandler2 extends ServerHandlerAdapter implements RequestRejectListener {
 	
 	/**
 	 * 초과 접속 발생 시, 이벤트 핸들러
 	 */
 	@Override
-	public byte[] onConnectionReject(int maxConnections, String remoteAddr) {
-		logger.error("접속 초과 발생 IP = {}", remoteAddr);
-		return "max connection.. sorry".getBytes();
+	public byte[] onRequestReject(ServerContext serverContext, int maxTaskThreads, HeadBodyRequest request) {
+		logger.error("작업 거절 발생 IP = {}", request.getSession().getRemoteAddr());
+		return "server too busy.. sorry".getBytes();
 	}
-	
-	
 	
 	
 	
@@ -34,7 +33,7 @@ public class PayServerHandler extends ServerHandlerAdapter implements Connection
 	
 	private Bo bo = new Bo();
 	
-	protected PayServerHandler() {
+	protected PayServerHandler2() {
 		super(HEAD_LENGTH);
 	}
 	
@@ -73,11 +72,4 @@ public class PayServerHandler extends ServerHandlerAdapter implements Connection
 		logger.error("API 오류 발생 + " + Arrays.toString(req.getHeadBytes()), th);
 		return ResponseUtils.make("0500",  "server error".getBytes(), req.getHeadBytes());
 	}
-	
-	
-	
-	
-	 
-	
-
 }

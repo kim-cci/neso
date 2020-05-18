@@ -10,7 +10,15 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+/**
+ * 기본 요청 처리 스레드 정책 
+ * 
+ * 상시 스레드는 jvm이용가능 코어 수 * 2
+ * 대기큐 없음
+ * 5초후 임시 스레드 반환
+ * 
+ * 상시 스레드 초과시, 바로 임시스레드 투입 
+ */
 public class BasicRequestThreadExecutor extends AbstractRequestExecutor {
 	
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -28,12 +36,14 @@ public class BasicRequestThreadExecutor extends AbstractRequestExecutor {
 	public void init(int MaxExecuteSize) {
 		super.init(MaxExecuteSize);
 		
-		int coreThreadSize = Math.max(2, Runtime.getRuntime().availableProcessors() * 2);
+		int base = getMaxRequets() / 10;
+		
+		int coreThreadSize = base - (base % Runtime.getRuntime().availableProcessors());
 		if (coreThreadSize > getMaxRequets()) {
 			coreThreadSize = getMaxRequets();
 		}
 		this.tp = new ThreadPoolExecutor(coreThreadSize,  getMaxRequets(), 
-				2000l, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>()
+				5000l, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>()
 				, new DefaultThreadFactory(getClass(), true));
 	}
 	

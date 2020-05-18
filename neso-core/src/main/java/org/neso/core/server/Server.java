@@ -44,7 +44,7 @@ public class Server {
 	
 	private LogLevel pipelineLogLevel = null;
 	
-	private boolean inoutLogging = true;
+	private boolean inoutLogging = false;
 	
 	private boolean connectionOriented = false;
 	
