@@ -10,17 +10,32 @@ public class ClientTest {
 	public static void main(String[] args) throws Exception { 
 		
 		Socket socket = new Socket(); 
-		SocketAddress address = new InetSocketAddress(InetAddress.getByName("localhost"), 10000); 
+		SocketAddress address = new InetSocketAddress(InetAddress.getByName("localhost"), 10001); 
 		socket.connect(address); 
 		
 		socket.getOutputStream().write("05HELLO".getBytes()); 
 		socket.getOutputStream().flush(); 
 		
+	
+		
+		
+		Socket socket2 = new Socket();
+		socket2.connect(address); 
+		
+		socket2.getOutputStream().write("06HELLO2".getBytes()); 
+		socket2.getOutputStream().flush(); 
+		
+		byte[] responseBytes1 = new byte[5]; 
+		socket.getInputStream().read(responseBytes1); 
+		System.out.println(new String(responseBytes1)); 
+		
 		byte[] responseBytes2 = new byte[5]; 
-		socket.getInputStream().read(responseBytes2); 
+		socket2.getInputStream().read(responseBytes2); 
 		System.out.println(new String(responseBytes2)); 
 		
-		socket.close(); 
+		socket.close();
+		socket2.close();
 	}
+	
 }
 

@@ -9,18 +9,19 @@ public class ServerContext {
 	
 	final private int port;
 	final private RequestHandler requestHandler;
-	final private RequestFactory requestFactory;
-	final private RequestExecutor requestTaskExecutor;
-	final private ServerOptions options;
-	final private ConnectionManager connectionManager;
 	
-	public ServerContext(int port, RequestHandler requestHandler, RequestFactory requestFactory, RequestExecutor requestTaskExecutor, ServerOptions options, ConnectionManager connectionManager) {
+	final ServerOptions options;
+	
+	private RequestFactory requestFactory;
+	private RequestExecutor requestExecutor;
+	private ConnectionManager connectionManager;
+	
+	
+	
+	public ServerContext(int port, RequestHandler requestHandler, ServerOptions serverOptions) {
 		this.port = port;
 		this.requestHandler = requestHandler;
-		this.requestFactory = requestFactory;
-		this.requestTaskExecutor = requestTaskExecutor;
-		this.options = options;
-		this.connectionManager = connectionManager;
+		this.options = serverOptions;
 	}
 	
 	public int port() {
@@ -31,12 +32,13 @@ public class ServerContext {
 		return this.requestHandler;
 	}
 	
+	
 	public RequestFactory requestFactory() {
 		return this.requestFactory;
 	}
 	
-	public RequestExecutor requestTaskExecutor() {
-		return this.requestTaskExecutor;
+	public RequestExecutor requestExecutor() {
+		return this.requestExecutor;
 	}
 	
 	public ServerOptions options() {
@@ -45,5 +47,17 @@ public class ServerContext {
 	
 	public ConnectionManager connectionManager() {
 		return this.connectionManager;
+	}
+	
+	protected void setRequestFactory(RequestFactory requestFactory) {
+		this.requestFactory = requestFactory;
+	}
+	
+	protected void setRequestExecutor(RequestExecutor requestExecutor) {
+		this.requestExecutor = requestExecutor;
+	}
+	
+	protected void setConnectionManager(ConnectionManager connectionManager) {
+		this.connectionManager = connectionManager;
 	}
 }

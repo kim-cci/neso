@@ -1,6 +1,9 @@
 package org.neso.sample.chapter1;
 
 
+import io.netty.channel.ChannelOption;
+import io.netty.handler.logging.LogLevel;
+
 import java.util.Arrays;
 
 import org.neso.api.server.handler.support.SingleApiServerHandler;
@@ -17,6 +20,6 @@ public class ServerTest {
 			Thread.sleep(5000);
 			return response; 
 		
-		}), 10001).connectionOriented().readTimeout(3000).start(); 
+		}), 10001).pipeLineLogLevel(LogLevel.INFO).option(ChannelOption.SO_BACKLOG, 100).maxConnections(1).start(); 
 	}
 }

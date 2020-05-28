@@ -51,7 +51,7 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 			OperableHeadBodyRequest request = (OperableHeadBodyRequest) req;
 			RequestTask task = new RequestTask(client, request);
  
-			if (!client.getServerContext().requestTaskExecutor().registerTask(task)) {
+			if (!client.getServerContext().requestExecutor().registerTask(task)) {
 				logger.debug("request cant registered in the request pool");
 				
 				byte[] rejectMessage = DEFAULT_REJECT_MESSAGE.getBytes();
@@ -60,7 +60,7 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 					RequestRejectListener listener = (RequestRejectListener) client.getServerContext().requestHandler();
 				
 					try {
-						rejectMessage = listener.onRequestReject(client.getServerContext(), client.getServerContext().requestTaskExecutor().getMaxRequets(), request);
+						rejectMessage = listener.onRequestReject(client.getServerContext(), client.getServerContext().requestExecutor().getMaxRequets(), request);
 					} catch (Exception e) {
 						logger.error("occurred requestRejectListner's onRequestReject", e);
 					}
