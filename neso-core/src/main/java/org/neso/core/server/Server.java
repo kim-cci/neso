@@ -3,6 +3,7 @@ package org.neso.core.server;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -48,7 +49,7 @@ public class Server {
 	
 	private boolean connectionOriented = false;
 	
-    private int ioThreads = 0;	//0일 경우 core * 2 //최적화
+    private int ioThreads = 0;	//0일 경우 네티 전략 따름 
     
     private int maxRequests = 100;
     
@@ -124,7 +125,9 @@ public class Server {
     	
     	initializerServerStart();
     	
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+    	int bossThreas = Runtime.getRuntime().availableProcessors();
+    	
+        EventLoopGroup bossGroup = new NioEventLoopGroup(bossThreas);
         EventLoopGroup workerGroup = new NioEventLoopGroup(ioThreads);//connectionManager.getMaxConnectionSize() + 1
         
         try {
@@ -140,6 +143,7 @@ public class Server {
                  }
              });
             
+            sbs.option(ChannelOption.SO_BACKLOG, bossThreas * 20);
             option(sbs);
             
             final ChannelFuture cf = sbs.bind(port).sync().addListener(new GenericFutureListener<ChannelFuture>() {
@@ -193,7 +197,7 @@ public class Server {
     	//TODO requestTaskExecutor 로그 출력
     	
 		if (requestTaskExecutor.isRunIoThread()) {
-			ioThreads = requestTaskExecutor.getMaxRequets() + 10; //io스레드가 request처리 동시실행숫자보다 작으면 io스레드에서 병목이 발생하므로.. io스레드가 무조건 커야한다.
+			ioThreads = requestTaskExecutor.getMaxRequets() + 1; //io스레드가 request처리 동시실행숫자보다 작으면 io스레드에서 병목이 발생하므로.. io스레드가 무조건 커야한다.
 		} else {
 			//io thread는 네티 전략 따름 -> 0
 		}
@@ -201,10 +205,9 @@ public class Server {
     	RequestFactory requestFactory = new InMemoryRequestFactory(); //일단 메모리만 제공
     	
 		ConnectionManagerHandler connectionManagerHandler = maxConnections > 0 ? new ConnectionManagerHandler(maxConnections) : null;
-		if (requestHandler instanceof ConnectionRejectListener) {
+		if (connectionManagerHandler != null && requestHandler instanceof ConnectionRejectListener) {
 			connectionManagerHandler.setConnectionRejectListener((ConnectionRejectListener) requestHandler);
 		}
-		
 		
     	ServerOptions options = new ServerOptions(connectionOriented, maxRequests, readTimeoutMillisOnRead, writeTimeoutMillis, maxConnections, maxRequestBodyLength, inoutLogging);
     	
