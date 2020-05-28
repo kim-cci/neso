@@ -37,11 +37,11 @@ public class ServerHandlerAdapter extends ServerHandler {
         while (!clazz.equals(ServerHandlerAdapter.class)) {
             Method[] thisMethods = clazz.getDeclaredMethods();
             for (Method method : thisMethods ) {
-            	if ("getApiIdFromHead".equals(method.getName())) {
+            	if ("getApiKeyFromHead".equals(method.getName())) {
             		isConcreteGetApiFromHead = true;
             	}
             	
-            	if ("getApiIdFromBody".equals(method.getName())) {
+            	if ("getApiKeyFromBody".equals(method.getName())) {
             		isConcreteGetApiFromBody = true;
             	}
             	
