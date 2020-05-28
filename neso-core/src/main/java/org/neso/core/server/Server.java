@@ -20,6 +20,7 @@ import org.neso.core.netty.ClientAgent;
 import org.neso.core.request.factory.InMemoryRequestFactory;
 import org.neso.core.request.handler.RequestHandler;
 import org.neso.core.request.handler.task.RequestExecutor;
+import org.neso.core.support.BossHandler;
 import org.neso.core.support.ConnectionManagerHandler;
 import org.neso.core.support.ConnectionRejectListener;
 import org.slf4j.Logger;
@@ -82,7 +83,7 @@ public class Server extends ServerOptions {
             sbs.group(bossGroup, workerGroup);
             sbs.channel(NioServerSocketChannel.class);
             
-            initializeHandlerByConnect(sbs);
+            sbs.handler(new BossHandler(getMaxConnections()));
         	
             sbs.childHandler(new ChannelInitializer<SocketChannel>() {
                  @Override
@@ -169,14 +170,6 @@ public class Server extends ServerOptions {
 		}
     }
     
-    private void initializeHandlerByConnect(ServerBootstrap sbs) {
-    	if (getPipeLineLogLevel() != null) {
-			sbs.handler(new LoggingHandler(getPipeLineLogLevel()));
-		}
-    	
-    
-    }
-    
     private void initializeHandlerByAccept(SocketChannel sc) {
     	
 
@@ -184,9 +177,6 @@ public class Server extends ServerOptions {
     	
 		ChannelPipeline cp = sc.pipeline();
 		
-		if (context.connectionManager() != null) {
-			cp.addLast((ConnectionManagerHandler) context.connectionManager()); //1.접속 제한
-		}
 		
 		if (getPipeLineLogLevel() != null) {
 			cp.addLast(new LoggingHandler(getPipeLineLogLevel()));

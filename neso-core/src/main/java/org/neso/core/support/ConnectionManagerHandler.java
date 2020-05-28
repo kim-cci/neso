@@ -20,6 +20,8 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private final BlockingQueue<Channel> connectionQueue;
+	//큐로만든이유.. 이미 접속해 있는 사람부터 우선권을 주기 위해..했음...그런데 잘못되었네..
+	
 	private final int maxConnectionSize;
 	 
 	private ConnectionRejectListener connectionRejectListener;
@@ -48,6 +50,7 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 	
 	@Override
 	public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+		System.out.println("접속 channelRegistered");
 		if (connectionQueue.offer(ctx.channel())) {
 			logger.debug("connected..  {}/{}", connectionQueue.remainingCapacity(), maxConnectionSize);
 
@@ -84,6 +87,7 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 	
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		System.out.println("접속 channelActive");
 		if (connectionQueue.contains(ctx.channel())) {
 			super.channelActive(ctx);
 		}
@@ -92,6 +96,7 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		System.out.println("접속 channelRead");
 		if (connectionQueue.contains(ctx.channel())) {
 			super.channelRead(ctx, msg);
 		}
@@ -100,6 +105,7 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 	
 	@Override
 	public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+		System.out.println("접속 channelUnregistered");
 		if (connectionQueue.remove(ctx.channel())) {
 			logger.debug("disconnected ..  {}/{}", connectionQueue.remainingCapacity(), maxConnectionSize);
 		}
