@@ -20,7 +20,6 @@ import org.neso.core.netty.ClientAgent;
 import org.neso.core.request.factory.InMemoryRequestFactory;
 import org.neso.core.request.handler.RequestHandler;
 import org.neso.core.request.handler.task.RequestExecutor;
-import org.neso.core.support.BossHandler;
 import org.neso.core.support.ConnectionManagerHandler;
 import org.neso.core.support.ConnectionRejectListener;
 import org.slf4j.Logger;
@@ -83,7 +82,9 @@ public class Server extends ServerOptions {
             sbs.group(bossGroup, workerGroup);
             sbs.channel(NioServerSocketChannel.class);
             
-            sbs.handler(new BossHandler(getMaxConnections()));
+        	if (getPipeLineLogLevel() != null) {
+    			sbs.handler(new LoggingHandler(getPipeLineLogLevel()));
+    		}
         	
             sbs.childHandler(new ChannelInitializer<SocketChannel>() {
                  @Override
@@ -170,6 +171,7 @@ public class Server extends ServerOptions {
 		}
     }
     
+
     private void initializeHandlerByAccept(SocketChannel sc) {
     	
 

@@ -47,7 +47,6 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     	if (toReadBytes < 1) {
     		throw new RuntimeException("cant read ...");
     	}
-    	logger.debug("toReadBytes length => {}", toReadBytes);
     	toReadBuf = ctx.alloc().buffer(toReadBytes);
     	
     	if (reader.getStatus() == ReaderStatus.ING) {
@@ -84,7 +83,6 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
 	    	        		}
 	    	        		
 	        	        	int toReadBytes = reader.getToReadBytes();
-	                        logger.debug("toReadBytes length => {}", toReadBytes);
 	                        toReadBuf.clear();
 	                    	toReadBuf.capacity(toReadBytes);
 	    	        	}

@@ -60,7 +60,7 @@ public class BasicRequestThreadExecutor extends AbstractRequestExecutor {
 	@Override
 	public void shutdown() {
 		//TODO 검증
-		logger.info("SynchronousRequestTaskThreadExecutor (current task count={})", tp.getTaskCount());
+		logger.info("requestTaskThreadExecutor shutdown (current task count={})", tp.getTaskCount());
 		tp.shutdown();
 		try {
 			if (!tp.isShutdown() && !tp.awaitTermination(5, TimeUnit.SECONDS)) {

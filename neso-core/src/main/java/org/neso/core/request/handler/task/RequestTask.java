@@ -1,5 +1,7 @@
 package org.neso.core.request.handler.task;
 
+import java.util.Arrays;
+
 import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.internal.OperableHeadBodyRequest;
@@ -28,18 +30,26 @@ public class RequestTask implements Runnable {
 	
 	
 	public void run() {
-		logger.debug("request task started..");
-		
-		long startTime = System.currentTimeMillis();//System.nanoTime();
-		
 		try {
-			client.getServerContext().requestHandler().doRequest(client, request);
+			
+			if (client.isConnected()) {
+				
+				logger.debug("request task started..");
+				
+				long startTime = System.currentTimeMillis();//System.nanoTime();
+				
+				client.getServerContext().requestHandler().doRequest(client, request);
 
-			long elapsedMilis = System.currentTimeMillis() - startTime; //System.nanoTime() - startTime;	
+				long elapsedMilis = System.currentTimeMillis() - startTime; //System.nanoTime() - startTime;	
+				
+				//TODO //지연 리스터 처리 ?
+				
+				logger.debug("request task finished.. elapse time -> {}.{} sec", elapsedMilis / 1000, String.format("%03d", elapsedMilis % 1000));
+			} else {
+				logger.debug("request task stopped by disconnect");
+			}
 			
-			//TODO //지연 리스터 처리 ?
-			
-			logger.debug("request task finished.. elapse time -> {}.{} sec", elapsedMilis / 1000, String.format("%03d", elapsedMilis % 1000));
+		
 			
 		} catch (Exception e) {
 			

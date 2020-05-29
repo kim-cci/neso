@@ -19,8 +19,7 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
  
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	private final BlockingQueue<Channel> connectionQueue;
-	//큐로만든이유.. 이미 접속해 있는 사람부터 우선권을 주기 위해..했음...그런데 잘못되었네..
+	private final BlockingQueue<Channel> connectionQueue; //큐로만든이유.. 이미 접속해 있는 사람부터 우선권을 주기 위해.. 지금은 유효하지 확인이 필요함
 	
 	private final int maxConnectionSize;
 	 
