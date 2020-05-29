@@ -52,7 +52,7 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 			RequestTask task = new RequestTask(client, request);
  
 			if (!client.getServerContext().requestExecutor().registerTask(task)) {
-				logger.debug("request cant registered in the request pool");
+				logger.debug("request cant registered in the request pool, {}", client.toString());
 				
 				byte[] rejectMessage = DEFAULT_REJECT_MESSAGE.getBytes();
 				if (client.getServerContext().requestHandler() instanceof RequestRejectListener) {

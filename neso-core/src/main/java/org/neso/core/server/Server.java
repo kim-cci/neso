@@ -82,9 +82,9 @@ public class Server extends ServerOptions {
             sbs.group(bossGroup, workerGroup);
             sbs.channel(NioServerSocketChannel.class);
             
-        	if (getPipeLineLogLevel() != null) {
-    			sbs.handler(new LoggingHandler(getPipeLineLogLevel()));
-    		}
+//        	if (getPipeLineLogLevel() != null) {
+//    			sbs.handler(new LoggingHandler(getPipeLineLogLevel()));
+//    		}
         	
             sbs.childHandler(new ChannelInitializer<SocketChannel>() {
                  @Override
@@ -156,19 +156,17 @@ public class Server extends ServerOptions {
         	
         	context.setRequestExecutor(requestTaskExecutor);
     	} catch (Exception e) {
-    		throw new RuntimeException("requestExecutor create error", e);
+    		throw new RuntimeException("configuration server context .. requestExecutor create error", e);
     	}
     	
     	context.setRequestFactory(new InMemoryRequestFactory());  //일단 메모리만 제공
     	
     	int maxConnections = getMaxConnections();
-		ConnectionManagerHandler connectionManagerHandler = maxConnections > 0 ? new ConnectionManagerHandler(maxConnections) : null;
-		if (connectionManagerHandler != null) {
-			if (context.requestHandler() instanceof ConnectionRejectListener) {
-				connectionManagerHandler.setConnectionRejectListener((ConnectionRejectListener) context.requestHandler());
-			}
-			context.setConnectionManager(connectionManagerHandler);
+		ConnectionManagerHandler connectionManagerHandler = new ConnectionManagerHandler(maxConnections);
+		if (context.requestHandler() instanceof ConnectionRejectListener) {
+			connectionManagerHandler.setConnectionRejectListener((ConnectionRejectListener) context.requestHandler());
 		}
+		context.setConnectionManager(connectionManagerHandler);
     }
     
 
@@ -179,10 +177,13 @@ public class Server extends ServerOptions {
     	
 		ChannelPipeline cp = sc.pipeline();
 		
+		cp.addLast((ConnectionManagerHandler) context.connectionManager());
 		
 		if (getPipeLineLogLevel() != null) {
 			cp.addLast(new LoggingHandler(getPipeLineLogLevel()));
 		}
+		
+		
 		
 		ByteLengthBasedInboundHandler readHandler = new ByteLengthBasedInboundHandler(clientAgent.getReader(), getReadTimeoutMillisOnRead());
 		

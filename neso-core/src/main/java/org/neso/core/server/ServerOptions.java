@@ -95,7 +95,11 @@ public abstract class ServerOptions implements ServerUI {
 	}
 
 	public ServerOptions maxConnections(int maxConnections) {
+		if (maxConnections < 1) {
+	  		throw new RuntimeException("maxConnections is bigger than zero");
+	  	}
 		this.maxConnections = maxConnections;
+
 		return this;
 	}
 

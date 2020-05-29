@@ -29,7 +29,7 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 	
 	public ConnectionManagerHandler(int maxConnectionSize) {
 		this.maxConnectionSize = maxConnectionSize;
-		this.connectionQueue = new LinkedBlockingQueue<Channel>(maxConnectionSize);
+		this.connectionQueue = new LinkedBlockingQueue<Channel>(maxConnectionSize == -1 ? Integer.MAX_VALUE : maxConnectionSize);
 	}
 	
 	public void setConnectionRejectListener(ConnectionRejectListener connectionRejectListener) {
@@ -49,14 +49,14 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 	
 	@Override
 	public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-		System.out.println("접속 channelRegistered");
+		
 		if (connectionQueue.offer(ctx.channel())) {
-			logger.debug("connected..  {}/{}", connectionQueue.remainingCapacity(), maxConnectionSize);
+			logger.debug("connected..  {}", ctx.channel().toString());
 
 			super.channelRegistered(ctx);
 		} else {
 			//접속 거절
-			logger.debug("connected...reject!!");
+			logger.debug("connected...reject!! {}", ctx.channel().toString());
 
 			byte[] rejectMessage = DEFAULT_REJECT_MESSAGE.getBytes();
 			if (connectionRejectListener != null) {
@@ -74,6 +74,7 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 					logger.error("occurred connectionRejectListner's onConnectionReject", e);
 				}
 			}
+			
 			if (rejectMessage == null) {
 				ctx.close();
 			} else {
@@ -86,7 +87,6 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 	
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		System.out.println("접속 channelActive");
 		if (connectionQueue.contains(ctx.channel())) {
 			super.channelActive(ctx);
 		}
@@ -95,7 +95,6 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		System.out.println("접속 channelRead");
 		if (connectionQueue.contains(ctx.channel())) {
 			super.channelRead(ctx, msg);
 		}
@@ -104,9 +103,8 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 	
 	@Override
 	public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-		System.out.println("접속 channelUnregistered");
 		if (connectionQueue.remove(ctx.channel())) {
-			logger.debug("disconnected ..  {}/{}", connectionQueue.remainingCapacity(), maxConnectionSize);
+			logger.debug("disconnected .. {}", ctx.channel().toString());
 		}
 		super.channelUnregistered(ctx);
 	}

@@ -17,9 +17,9 @@ public class ServerTest {
 			
 			byte[] response = request.getBodyBytes(); 
 			Arrays.sort(response); 
-			Thread.sleep(5000);
+			Thread.sleep(1000);
 			return response; 
 		
-		}), 10001).pipeLineLogLevel(LogLevel.INFO).option(ChannelOption.SO_BACKLOG, 100).maxConnections(1).start(); 
+		}), 10001).pipeLineLogLevel(LogLevel.INFO).option(ChannelOption.SO_BACKLOG, 100).inoutLogging(false).maxConnections(1).connectionOriented(true).start(); 
 	}
 }

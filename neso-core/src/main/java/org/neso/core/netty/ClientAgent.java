@@ -108,7 +108,7 @@ public class ClientAgent extends SessionImplClient {
 						
 						@Override
 						public void operationComplete(ChannelFuture lastResult) throws Exception {
-							logger.debug("disconnected!!");
+							//logger.debug("disconnected!!");
 						}
 					});
 				} else {
@@ -121,7 +121,7 @@ public class ClientAgent extends SessionImplClient {
     @Override
     public void releaseWriterLock() {
     	if (lock.isHeldByCurrentThread()) {
-    		logger.debug("client release ... unlock");
+    		//logger.debug("client release ... unlock");
     		getWriter().close();
     	}
     }
@@ -213,11 +213,17 @@ public class ClientAgent extends SessionImplClient {
 					disconnect();
 				}
 			}
+			
 			if (lock.isHeldByCurrentThread()) {
 				//logger.debug("writer lock release");
 				lock.unlock();
 			}
-			
 		}
     }
+
+
+	@Override
+	public String toString() {
+		return socketChannel().toString();
+	}
 }
