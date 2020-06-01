@@ -19,8 +19,7 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
  
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	//큐로 만든 이유.. 이미 접속해 있는 사람부터 우선권을 주기 위해.. 지금은 유효하지 확인이 필요함
-	//ㅁ
+	//큐로 만든 이유.. 기억이 안난다.. atomic integer로 다시 바꿀까... 
 	private final BlockingQueue<Channel> connectionQueue; 
 	
 	private final int maxConnectionSize;
