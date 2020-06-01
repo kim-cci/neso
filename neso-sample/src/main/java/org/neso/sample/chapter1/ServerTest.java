@@ -20,6 +20,6 @@ public class ServerTest {
 			Thread.sleep(1000);
 			return response; 
 		
-		}), 10001).pipeLineLogLevel(LogLevel.INFO).option(ChannelOption.SO_BACKLOG, 100).inoutLogging(false).maxConnections(1).connectionOriented(true).start(); 
+		}), 10001).pipeLineLogLevel(LogLevel.DEBUG).channelOption(ChannelOption.SO_BACKLOG, 100).inoutLogging(false).maxConnections(1).connectionOriented(true).start(); 
 	}
 }

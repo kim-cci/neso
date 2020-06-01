@@ -33,8 +33,8 @@ public class Server extends ServerOptions {
     
     private ServerContext context;
     
-    private boolean customSoBackLog = false;
-    
+    private int soBackLog = -1;
+
     public Server(RequestHandler requestHandler, int port) {
     	initialize(requestHandler, port);
 	}
@@ -45,15 +45,15 @@ public class Server extends ServerOptions {
     }
     
     @Override
-    public <T> ServerOptions option(ChannelOption<T> option, T value) {
+    public <T> ServerOptions channelOption(ChannelOption<T> option, T value) {
     	if (option == ChannelOption.SO_BACKLOG && value != null) {
-    		customSoBackLog = true;
+    		soBackLog = (Integer) value;
     	}
     	sbs.option(option, value);
     	return this;
     }
     @Override
-    public <T> ServerOptions childOption(ChannelOption<T> childOption, T value) {
+    public <T> ServerOptions childChannelOption(ChannelOption<T> childOption, T value) {
     	sbs.childOption(childOption, value);
     	return this;
     }
@@ -75,9 +75,11 @@ public class Server extends ServerOptions {
     	EventLoopGroup workerGroup = new NioEventLoopGroup(ioThreads, new DefaultThreadFactory("ioThread"));//connectionManager.getMaxConnectionSize() + 1
     	
         try {
-        	if (!customSoBackLog) {
-        		sbs.option(ChannelOption.SO_BACKLOG, bossThreads * 20);
+        	
+        	if (soBackLog == -1) {
+        		soBackLog = bossThreads * 20;
         	}
+        	sbs.option(ChannelOption.SO_BACKLOG, soBackLog);
         	
             sbs.group(bossGroup, workerGroup);
             sbs.channel(NioServerSocketChannel.class);
@@ -114,7 +116,9 @@ public class Server extends ServerOptions {
     				cf.channel().close();
     			}
     		});
-
+            
+            logger.info(sbs.toString());
+            
             cf.channel().closeFuture().sync().addListener(new GenericFutureListener<ChannelFuture>() {
                 public void operationComplete(ChannelFuture future) throws Exception {
                 	
@@ -177,13 +181,11 @@ public class Server extends ServerOptions {
     	
 		ChannelPipeline cp = sc.pipeline();
 		
-		cp.addLast((ConnectionManagerHandler) context.connectionManager());
-		
 		if (getPipeLineLogLevel() != null) {
 			cp.addLast(new LoggingHandler(getPipeLineLogLevel()));
 		}
 		
-		
+		cp.addLast((ConnectionManagerHandler) context.connectionManager());
 		
 		ByteLengthBasedInboundHandler readHandler = new ByteLengthBasedInboundHandler(clientAgent.getReader(), getReadTimeoutMillisOnRead());
 		

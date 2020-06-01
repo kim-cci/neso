@@ -8,17 +8,23 @@ import io.netty.handler.logging.LogLevel;
 
 public abstract class ServerOptions implements ServerUI {
 	
+	//접속 유지 여부
 	private boolean connectionOriented = false;
 	
+	//최대 동시 요청 수
 	private int maxRequests = 100;
 	
+	//read timeout
 	private int readTimeoutMillisOnRead = 5000;
 	
 	private int writeTimeoutMillis = 2000;
 	
+	//최대 동시 접속 수
 	private int maxConnections = -1;
    
+	//본문 최대 길이
 	private int maxRequestBodyLength = -1;
+	
 	
 	private boolean inoutLogging = false;
 	
@@ -87,7 +93,7 @@ public abstract class ServerOptions implements ServerUI {
 	}
 
 	public ServerOptions writeTimeoutMillis(int writeTimeoutMillis) {
-		if (writeTimeoutMillis < 0) {
+		if (writeTimeoutMillis < 1) {
 	  		throw new RuntimeException("writeTimeoutMillis is bigger than zero");
 	  	}
 	  	this.writeTimeoutMillis = writeTimeoutMillis;
@@ -126,8 +132,8 @@ public abstract class ServerOptions implements ServerUI {
   	}
 	*/
 	
-	public abstract <T> ServerOptions option(ChannelOption<T> option, T value);
+	public abstract <T> ServerOptions channelOption(ChannelOption<T> option, T value);
     
-	public abstract <T> ServerOptions childOption(ChannelOption<T> childOption, T value);
+	public abstract <T> ServerOptions childChannelOption(ChannelOption<T> childOption, T value);
 	
 }
