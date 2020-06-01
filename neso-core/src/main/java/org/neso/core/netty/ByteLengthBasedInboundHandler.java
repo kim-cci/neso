@@ -37,10 +37,9 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     	this.reader = reader;
     	this.readTimeoutMillisOnRead = readTimeoutMillisOnRead;
 	}
-
+    
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-    	
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
     	reader.init();
     	
     	int toReadBytes = reader.getToReadBytes();
@@ -53,7 +52,6 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     		addReadTimeoutHandler(ctx);
     	}
     }
-    
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -107,12 +105,13 @@ public final class ByteLengthBasedInboundHandler extends ChannelInboundHandlerAd
     }
     
     @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
     	if (toReadBuf != null && toReadBuf.refCnt() > 0) {
     		ReferenceCountUtil.release(toReadBuf);
     	}
     	reader.destroy();
     }
+
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {	

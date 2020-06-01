@@ -49,13 +49,14 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 	}
 
 	
+ 
+	
 	@Override
-	public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-		
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		if (connectionQueue.offer(ctx.channel())) {
 			logger.debug("connected..  {}", ctx.channel().toString());
 
-			super.channelRegistered(ctx);
+			super.channelActive(ctx);
 		} else {
 			//접속 거절
 			logger.debug("connected...reject!! {}", ctx.channel().toString());
@@ -87,13 +88,6 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 		}
 	}
 	
-	@Override
-	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		if (connectionQueue.contains(ctx.channel())) {
-			super.channelActive(ctx);
-		}
-	}
-	
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -104,12 +98,10 @@ public class ConnectionManagerHandler extends ChannelInboundHandlerAdapter imple
 	
 	
 	@Override
-	public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		if (connectionQueue.remove(ctx.channel())) {
 			logger.debug("disconnected .. {}", ctx.channel().toString());
 		}
-		super.channelUnregistered(ctx);
+		super.channelInactive(ctx);
 	}
-	
-	
 }

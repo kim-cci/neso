@@ -9,7 +9,7 @@ import java.net.SocketAddress;
 public class ClientTest { 
 	public static void main(String[] args) throws Exception { 
 		
-		for (int i = 0; i< 1; i++) {
+		for (int i = 0; i< 2; i++) {
 			Socket socket = new Socket(); 
 			SocketAddress address = new InetSocketAddress(InetAddress.getByName("localhost"), 10001); 
 			socket.connect(address); 
@@ -26,9 +26,9 @@ public class ClientTest {
 //			socket2.getOutputStream().write("06HELLO2".getBytes()); 
 //			socket2.getOutputStream().flush(); 
 			
-			byte[] responseBytes1 = new byte[5]; 
-			socket.getInputStream().read(responseBytes1); 
-			System.out.println(new String(responseBytes1)); 
+//			byte[] responseBytes1 = new byte[5]; 
+//			socket.getInputStream().read(responseBytes1); 
+//			System.out.println(new String(responseBytes1)); 
 			
 //			byte[] responseBytes2 = new byte[5]; 
 //			socket2.getInputStream().read(responseBytes2); 
