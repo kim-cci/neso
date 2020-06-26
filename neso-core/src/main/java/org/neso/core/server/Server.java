@@ -77,7 +77,7 @@ public class Server extends ServerOptions {
         try {
         	
         	if (soBackLog == -1) {
-        		soBackLog = bossThreads * 20;
+        		soBackLog = bossThreads * 200;
         	}
         	sbs.option(ChannelOption.SO_BACKLOG, soBackLog);
         	
