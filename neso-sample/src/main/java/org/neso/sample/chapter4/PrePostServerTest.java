@@ -1,7 +1,7 @@
 package org.neso.sample.chapter4;
 
 
-import org.neso.api.server.handler.ServerHandlerListenerAdapter;
+import org.neso.api.server.handler.AbstractWirableServerHandler;
 import org.neso.api.server.handler.support.HeadBasedServerHandler;
 import org.neso.core.server.Server;
 
@@ -9,7 +9,7 @@ public class PrePostServerTest {
 
 	public static void main(String[] args) {
 		
-		ServerHandlerListenerAdapter serverHandler = new HeadBasedServerHandler(8, 0, 2, 2, 6);
+		AbstractWirableServerHandler serverHandler = new HeadBasedServerHandler(8, 0, 2, 2, 6);
 		serverHandler.registApi("sign", request -> {
 			//회원 가입 처리
 			return "u001".getBytes(); //회원 번호 리턴

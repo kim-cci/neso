@@ -24,9 +24,6 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 	
 	private Map<String, Api> apiHandlerMap = new ConcurrentHashMap<String, Api>();
 
-	protected ServerHandler(int headerLength) { 
-		super(headerLength);
-	}
 
 	private Api apiMatch(HeadBodyRequest request) {
 		
@@ -44,9 +41,9 @@ public abstract class ServerHandler extends AbstractRequestHandler {
     }
 	
 	protected String getApiKey(HeadBodyRequest request) {
-		String apiKey = getApiKeyFromHead(request.getHeadBytes());
+		String apiKey = apiKeyFromHead(request.getHeadBytes());
 		if (StringUtils.isEmpty(apiKey)) {
-			apiKey = getApiKeyFromBody(request.getBodyBytes());
+			apiKey = apiKeyFromBody(request.getBodyBytes());
 		}
 		
 		return apiKey;
@@ -178,10 +175,11 @@ public abstract class ServerHandler extends AbstractRequestHandler {
 		writer.close();
 	}
 	
+
 	
-	protected abstract String getApiKeyFromHead(byte[] head);
+	protected abstract String apiKeyFromHead(byte[] head);
 	
-	protected abstract String getApiKeyFromBody(byte[] body);
+	protected abstract String apiKeyFromBody(byte[] body);
 	
 	protected abstract byte[] preApiExecute(Session session, HeadBodyRequest request);
     

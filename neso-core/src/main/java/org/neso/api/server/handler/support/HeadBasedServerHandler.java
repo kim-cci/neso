@@ -2,7 +2,7 @@ package org.neso.api.server.handler.support;
 
 import java.util.Arrays;
 
-import org.neso.api.server.handler.ServerHandlerListenerAdapter;
+import org.neso.api.server.handler.AbstractWirableServerHandler;
 import org.neso.core.exception.HeaderParsingException;
 import org.neso.core.request.HeadRequest;
 
@@ -23,8 +23,9 @@ import org.neso.core.request.HeadRequest;
  * apiIdFieldLength -> 6
  */
 
-public class HeadBasedServerHandler extends ServerHandlerListenerAdapter {
+public class HeadBasedServerHandler extends AbstractWirableServerHandler {
 	
+	final private int headLength;
 	final private int bodyLengthFiledOffset;
 	final private int bodyLengthFiledLength;
 	final private int apiIdFieldOffset;
@@ -32,7 +33,7 @@ public class HeadBasedServerHandler extends ServerHandlerListenerAdapter {
 	
 
 	public HeadBasedServerHandler(int headLength, int bodyLengthFiledOffset, int bodyLengthFiledLength, int apiIdFieldOffset, int apiIdFieldLength) {
-		super(headLength);
+		this.headLength = headLength;
 		if (headLength < 0 || bodyLengthFiledOffset < 0 || bodyLengthFiledLength < 0 || apiIdFieldOffset < 0 || apiIdFieldLength < 0) {
 			throw new IllegalArgumentException("value > 0");
 		}
@@ -42,9 +43,13 @@ public class HeadBasedServerHandler extends ServerHandlerListenerAdapter {
 		this.apiIdFieldLength = apiIdFieldLength;
 	}
 	
+	@Override
+	public int headLength() {
+		return headLength;
+	}
 
 	@Override
-	public int getBodyLength(HeadRequest request) {
+	public int bodyLength(HeadRequest request) {
 		try {
 			return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), bodyLengthFiledOffset, (bodyLengthFiledOffset  + bodyLengthFiledLength))));
 		} catch (Exception e) {
@@ -53,11 +58,14 @@ public class HeadBasedServerHandler extends ServerHandlerListenerAdapter {
 	}
 	
 	@Override
-	public String getApiKeyFromHead(byte[] head) {
+	public String apiKeyFromHead(byte[] head) {
 		try {
 			return new String(Arrays.copyOfRange(head, apiIdFieldOffset, (apiIdFieldOffset + apiIdFieldLength)), getCharset()).trim();
 		} catch (Exception e) {
 			throw new HeaderParsingException("invalid api key", head, e);
 		}
 	}
+
+
+
 }

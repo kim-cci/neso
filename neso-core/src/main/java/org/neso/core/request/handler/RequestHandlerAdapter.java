@@ -5,15 +5,10 @@ import org.neso.core.request.HeadBodyRequest;
 
 public abstract class RequestHandlerAdapter extends AbstractRequestHandler {
 
-	public RequestHandlerAdapter(int headerLength) { 
-		super(headerLength);
-	}
-
 	@Override
 	public void onConnect(Client client) {
 		
 	}
-
 
 	@Override
 	public void onDisconnect(Client client) {

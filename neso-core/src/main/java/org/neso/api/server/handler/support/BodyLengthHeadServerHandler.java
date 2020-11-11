@@ -2,7 +2,7 @@ package org.neso.api.server.handler.support;
 
 import java.util.Arrays;
 
-import org.neso.api.server.handler.ServerHandlerListenerAdapter;
+import org.neso.api.server.handler.AbstractWirableServerHandler;
 import org.neso.core.exception.HeaderParsingException;
 import org.neso.core.request.HeadRequest;
 
@@ -20,29 +20,36 @@ import org.neso.core.request.HeadRequest;
  * apiIdFieldOffsetOnBody -> 0
  * apiIdFieldLengthOnBody -> 12
  */
-public class BodyLengthHeadServerHandler extends ServerHandlerListenerAdapter {
+public class BodyLengthHeadServerHandler extends AbstractWirableServerHandler {
 	
+	final private int headLength;
 	final private int apiIdFieldOffsetOnBody;
 	final private int apiIdFieldLengthOnBody;
 	
 	public BodyLengthHeadServerHandler(int headLength, int apiIdFieldOffsetOnBody, int apiIdFieldLengthOnBody) {
-		super(headLength);
+		this.headLength = headLength;
 		this.apiIdFieldOffsetOnBody = apiIdFieldOffsetOnBody;
 		this.apiIdFieldLengthOnBody = apiIdFieldLengthOnBody;
 	}
 	
 	@Override
-	public int getBodyLength(HeadRequest request) {
+	public int headLength() {
+		return headLength;
+	}
+	
+	@Override
+	public int bodyLength(HeadRequest request) {
 
 		try {
-			return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), 0, getHeadLength())));
+			return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), 0, headLength)));
 		} catch (Exception e) {
 			throw new HeaderParsingException("invalid body length", request.getHeadBytes(), e);
 		}
 	}
 	
 	@Override
-	public String getApiKeyFromBody(byte[] body) {
+	public String apiKeyFromBody(byte[] body) {
 		return new String(Arrays.copyOfRange(body, apiIdFieldOffsetOnBody, (apiIdFieldOffsetOnBody + apiIdFieldLengthOnBody)), getCharset()).trim();
 	}
+
 }

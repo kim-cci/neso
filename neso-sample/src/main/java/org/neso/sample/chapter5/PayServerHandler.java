@@ -12,27 +12,27 @@ import org.slf4j.LoggerFactory;
 
 public class PayServerHandler extends ServerHandlerAdapter {
 	
-	public static final int HEAD_LENGTH = 20;	//헤더 길이는 20
 	public static final String ATTR_CORP_CODE = "_ATTR_CORP_CODE";
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	private Bo bo = new Bo();
+	private Bo aclBo = new Bo();
 	
-	protected PayServerHandler() {
-		super(HEAD_LENGTH);
+	@Override
+	public int headLength() {
+		return 20;
 	}
 	
 	@Override
-	public int getBodyLength(HeadRequest req) {
-		//0 ~ 5까지는  API식별자 6바이트, 6 ~ 9까지는 본문길이 4바이트 
+	public int bodyLength(HeadRequest req) {
+		//0 ~ 5까지 6바이트는  API식별자 , 6 ~ 9까지는 본문길이 4바이트 
 		byte[] bodyLengthBytes = Arrays.copyOfRange(req.getHeadBytes(), 6, 10);
 		return Integer.parseInt(new String(bodyLengthBytes).trim());
 	}
 	
 	@Override
-	protected String getApiKeyFromHead(byte[] head) {
-		//0 ~ 5까지는  API식별자 6바이트
+	protected String apiKeyFromHead(byte[] head) {
+		//0 ~ 5까지  6바이트는  API식별자
 		byte[] apiKeyBytes = Arrays.copyOfRange(head, 0, 6);
 		return new String(apiKeyBytes).trim();
 	}
@@ -43,7 +43,7 @@ public class PayServerHandler extends ServerHandlerAdapter {
 		byte[] corpCodeBytes = Arrays.copyOfRange(req.getHeadBytes(), 10, 16);
 		String corpCode = new String(corpCodeBytes);
 
-		if (!bo.isValidIp(corpCode, session.getRemoteAddr())) { 
+		if (!aclBo.isValidIp(corpCode, session.getRemoteAddr())) { 
 			//허용 IP가 아니라면 오류 응답, API 실행 X
 			return ResponseUtils.make("0403", "not allowed".getBytes(), req.getHeadBytes());
 		}

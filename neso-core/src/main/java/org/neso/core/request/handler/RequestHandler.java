@@ -25,7 +25,7 @@ public interface RequestHandler {
 	 * 
 	 * @return 읽어야할 바이트 길이
 	 */
-	public int getHeadLength();	
+	public int headLength();	
     
 	
 	/**
@@ -34,7 +34,7 @@ public interface RequestHandler {
 	 * @param HeadRequest
 	 * @return 읽어야할 바디 길이
 	 */
-    public int getBodyLength(HeadRequest request);
+    public int bodyLength(HeadRequest request);
     
     /**
      * 헤더와 바디를 모두 읽으면 호출

@@ -8,31 +8,24 @@ import org.slf4j.LoggerFactory;
 /**
  * 결제 서버
  */
+
 public class PaymentServerHandler extends ServerHandlerAdapter {
 
-	final Logger logSystem = LoggerFactory.getLogger(this.getClass());
+	final Logger log = LoggerFactory.getLogger(this.getClass());
 	
-	private static final int HEAD_LENGTH = 6;
-	
-	public PaymentServerHandler() {
-		super(HEAD_LENGTH);
+	@Override
+	public int headLength() {
+		return 10;
 	}
 	
 	@Override
-	public int getBodyLength(HeadRequest request) {
-        String apiKey = new String(request.getHeadBytes());
-        
-        if ("API_01".equals(apiKey)) { //01 api면 본문은 50
-        	return 50;
-        } else if ("API_02".equals(apiKey)) { //02 api면 본문 100
-        	return 100;
-        } else {
-        	return 0;
-        } 
+	public int bodyLength(HeadRequest request) {
+        String apiKey = new String(request.getHeadBytes());	// 헤더 바이트에는 api식별자만 있음
+        return "API_NO_001".equals(apiKey) ? 50 : 100;
 	}
 	
 	@Override
-	protected String getApiKeyFromHead(byte[] head) {
+	protected String apiKeyFromHead(byte[] head) {
 		return new String(head);
 	}
 }

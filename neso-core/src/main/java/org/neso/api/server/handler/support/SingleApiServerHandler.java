@@ -3,7 +3,7 @@ package org.neso.api.server.handler.support;
 import java.util.Arrays;
 
 import org.neso.api.Api;
-import org.neso.api.server.handler.ServerHandlerListenerAdapter;
+import org.neso.api.server.handler.AbstractWirableServerHandler;
 import org.neso.core.exception.HeaderParsingException;
 import org.neso.core.request.HeadRequest;
 
@@ -16,24 +16,31 @@ import org.neso.core.request.HeadRequest;
  * 
  * headLength = 3
  */
-public class SingleApiServerHandler extends ServerHandlerListenerAdapter {
+public class SingleApiServerHandler extends AbstractWirableServerHandler {
 
+	final private int headLength;
+	
 	public SingleApiServerHandler(int headLength, Api api) {
-		super(headLength);
+		this.headLength = headLength;
 		registApi("_SINGLE_API", api);
 	}
 	
 	@Override
-	public int getBodyLength(HeadRequest request) {
+	public int headLength() {
+		return headLength;
+	}
+	
+	@Override
+	public int bodyLength(HeadRequest request) {
 		try {
-			return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), 0, getHeadLength())));
+			return Integer.parseInt(new String(Arrays.copyOfRange(request.getHeadBytes(), 0, headLength)));
 		} catch (Exception e) {
 			throw new HeaderParsingException("invalid body length", request.getHeadBytes(), e);
 		}
 	}
 	
 	@Override
-	protected String getApiKeyFromHead(byte[] head) {
+	protected String apiKeyFromHead(byte[] head) {
 		return "_SINGLE_API";
 	}
 }

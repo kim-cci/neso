@@ -55,7 +55,7 @@ public class HeadBodyRequestReader implements ByteLengthBasedReader {
     	}
     	
     	if (!currentRequest.isReadedHead()) {
-    		int headLength = serverContext.requestHandler().getHeadLength();
+    		int headLength = serverContext.requestHandler().headLength();
     		if (headLength < 1) {
     			throw new RuntimeException("Header length cannot be zero or a negative number ");
     		}
@@ -63,7 +63,7 @@ public class HeadBodyRequestReader implements ByteLengthBasedReader {
     		
 		} else { //if (!currentRequest.isReadedBody()) 
 			
-			int bodyLength = serverContext.requestHandler().getBodyLength(currentRequest);
+			int bodyLength = serverContext.requestHandler().bodyLength(currentRequest);
 			
 			if (serverContext.options().getMaxRequestBodyLength() > 0) {
 				if (serverContext.options().getMaxRequestBodyLength() < bodyLength) {

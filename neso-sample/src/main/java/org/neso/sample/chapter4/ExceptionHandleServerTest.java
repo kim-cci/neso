@@ -1,7 +1,7 @@
 package org.neso.sample.chapter4;
 
 
-import org.neso.api.server.handler.ServerHandlerListenerAdapter;
+import org.neso.api.server.handler.AbstractWirableServerHandler;
 import org.neso.api.server.handler.listener.ListenerExceptionCaughtRequestExecute;
 import org.neso.api.server.handler.support.HeadBasedServerHandler;
 import org.neso.core.request.HeadBodyRequest;
@@ -12,7 +12,7 @@ public class ExceptionHandleServerTest {
 
 	public static void main(String[] args) {
 		
-		ServerHandlerListenerAdapter serverHandler = new HeadBasedServerHandler(8, 0, 2, 2, 6);
+		AbstractWirableServerHandler serverHandler = new HeadBasedServerHandler(8, 0, 2, 2, 6);
 		serverHandler.registApi("sign", request -> {
 			
 			if ("john".equals(new String(request.getBodyBytes()))) {

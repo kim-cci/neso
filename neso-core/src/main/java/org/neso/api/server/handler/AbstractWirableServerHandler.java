@@ -8,15 +8,10 @@ import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.Session;
 
 
-public abstract class ServerHandlerListenerAdapter extends ServerHandlerAdapter {
-
-	protected ServerHandlerListenerAdapter(int headerLength) {
-		super(headerLength);
-	}
-
+public abstract class AbstractWirableServerHandler extends AbstractServerHandler {
 
 	private ListenerExceptionCaughtRequestExecute listenerExceptionCaughtApiExecute;
-	final public ServerHandlerListenerAdapter attachListenerExceptionCaughtApiExecute(ListenerExceptionCaughtRequestExecute l) {
+	final public AbstractWirableServerHandler attachListenerExceptionCaughtApiExecute(ListenerExceptionCaughtRequestExecute l) {
 		this.listenerExceptionCaughtApiExecute = l;
 		return this;
 	}
@@ -32,7 +27,7 @@ public abstract class ServerHandlerListenerAdapter extends ServerHandlerAdapter 
     
     
 	private ListenerExceptionCaughtRequestIO listenerExceptionCaughtRequestIO;
-	final public ServerHandlerListenerAdapter attachListenerExceptionCaughtRequestIO(ListenerExceptionCaughtRequestIO l) {
+	final public AbstractWirableServerHandler attachListenerExceptionCaughtRequestIO(ListenerExceptionCaughtRequestIO l) {
 		this.listenerExceptionCaughtRequestIO = l;
 		return this;
 	}
@@ -48,7 +43,7 @@ public abstract class ServerHandlerListenerAdapter extends ServerHandlerAdapter 
 
 	
 	private ListenerPreApiExecute listenerPreApiExecute;
-	final public ServerHandlerListenerAdapter attachListnerPreApiExecute(ListenerPreApiExecute l) {
+	final public AbstractWirableServerHandler attachListnerPreApiExecute(ListenerPreApiExecute l) {
 		this.listenerPreApiExecute = l;
 		return this;
 	}
@@ -63,7 +58,7 @@ public abstract class ServerHandlerListenerAdapter extends ServerHandlerAdapter 
 	}
 
 	private ListenerPostApiExecute listenerPostApiExecute;
-	final public ServerHandlerListenerAdapter attachListnerPostApiExecute(ListenerPostApiExecute l) {
+	final public AbstractWirableServerHandler attachListnerPostApiExecute(ListenerPostApiExecute l) {
 		this.listenerPostApiExecute = l;
 		return this;
 	}

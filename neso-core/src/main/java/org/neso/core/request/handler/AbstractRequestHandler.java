@@ -8,6 +8,7 @@ import org.neso.core.request.Client;
 import org.neso.core.request.HeadBodyRequest;
 import org.neso.core.request.handler.task.RequestTask;
 import org.neso.core.request.internal.OperableHeadBodyRequest;
+import org.neso.core.server.ServerContext;
 import org.neso.core.support.RequestRejectListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,23 +16,11 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractRequestHandler implements RequestHandler {
 
 	private final static String DEFAULT_REJECT_MESSAGE = "server is too busy";
-	
-	
+
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	final private int headerLength;
-	
 	private Charset serverCharSet = Charset.defaultCharset();
 	
-	
-	public AbstractRequestHandler(int headerLength) {
-		this.headerLength = headerLength;
-	}
-
-	@Override
-	final public int getHeadLength() {
-		return this.headerLength;
-	}
 	
 	public void setCharset(Charset charSet) {
 		this.serverCharSet = charSet;
@@ -76,5 +65,20 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 		} else {
 			throw new RuntimeException("not... request instanceof OperableHeadBodyRequest ...TODO ");
 		}
+	}
+	
+	@Override
+	public void init(ServerContext context) {
+		
+	}
+
+	@Override
+	public void onConnect(Client client) {
+		
+	}
+
+	@Override
+	public void onDisconnect(Client client) {
+		
 	}
 }
