@@ -16,7 +16,7 @@
 <br>
 
 ## quick start & example
-- Api 구현 코드(서비스 레이어)
+- Api 구현(서비스 레이어)
 ````java
 //회원번호 조회 API
 public class SearchApi implements Api {
@@ -31,6 +31,7 @@ public class SearchApi implements Api {
 	}
 }
 ````
+
 ````java
 //회원 가입 API
 public class SignUpApi implements Api {
