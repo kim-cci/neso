@@ -25,8 +25,8 @@ public class SearchApi implements Api {
 	
 	@Override
 	public byte[] handle(HeadBodyRequest request) throws Exception {
-		
 		//서비스 레이어
+		//service.getUser(....
 		return userNo.getBytes();
 	}
 }
@@ -43,30 +43,32 @@ public class SignUpApi implements Api {
 		
 		byte[] bodyBytes = request.getBodyBytes();
 		//서비스 레이어 
+		//service.join(...
 		return "ok".getBytes(); //성공 응답
 	}
 }
 ````
 
-- ServerHandler구현체와 Server로 서버 시작
+  ServerHandler구현체와 Server로 서버 시작
   10002번 포트로 서버 기동
-
-````
+````java
 public static void main(String[] args) {
 		
 	ServerHandler serverHandler = new HeadBasedServerHandler(8, 0, 2, 2, 6); //헤드 8바이트, 본문길이 필드 0 ~ 2, API식별자 필드 2 ~ 8
 	serverHandler.registApi("search", new SignUpApi()); //회원번호 조회 API
 	serverHandler.registApi("sign", new SearchApi()); //회원 가입 API
 		
-	new Server(serverHandler, 10002)
-    .maxConnections(5000)           //최대 접속자 수
+	new Server(serverHandler, 10002) 
+		.maxConnections(5000)           //최대 접속자 수
 		.readTimeoutMillisOnRead(1000)  //timeout 설정
 		.start();
 }
 ````
 <br>
 <br>
+
 ## architecture 
+![object](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FdPdGuC%2FbtqBUTRLxtY%2FtKwb81Qp0zZ8I4LumoZjw1%2Fimg.jpg)
 <br>
 <br>
 
