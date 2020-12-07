@@ -108,8 +108,13 @@ public static void main(String[] args) {
 <br>
 <br>
 
-## Links - 개인 블로그
- * [Web Site](https://jronin.tistory.com/93)
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
+<br>
+<br>
+
+## Links
+ * [개인 블로그](https://jronin.tistory.com/93)
 <br>
 <br>
 ## repositoryㅡ
