@@ -66,7 +66,7 @@ public static void main(String[] args) {
 ````
 <br>
 <br>
-RequestHandler(ServerHandler 상위 인터페이스)
+RequestHandler(ServerHandler 상위 인터페이스) : 범용적
 
 ````java
 public static void main(String[] args) {
