@@ -66,6 +66,41 @@ public static void main(String[] args) {
 ````
 <br>
 <br>
+RequestHandler(ServerHandler 상위 인터페이스)
+````java
+public static void main(String[] args) {
+		
+	new Server(new RequestHandlerAdapter() {
+			
+		@Override
+		public int headLength() {
+			return 20;
+		}
+		
+		@Override
+		public int bodyLength(HeadRequest request) {
+			return Utils.byteToInt(request.getHeadBytes());
+		}
+		
+		@Override
+		public void doRequest(Client client, HeadBodyRequest request) throws Exception {
+			//사용자 요청 처리
+		}
+			
+		public void onConnect(Client client) {
+			//사용자 접속 처리
+		};
+
+	}	, 10002)
+	.maxConnections(5000)
+	.connectionOriented(true)
+	.requestExecutorType(IoThreadExecutor.class)	//io스레드에서 요청처리
+	.readTimeoutMillisOnRead(1000)
+	.start();
+}
+````
+<br>
+<br>
 
 ## architecture 
 ![object](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FdPdGuC%2FbtqBUTRLxtY%2FtKwb81Qp0zZ8I4LumoZjw1%2Fimg.jpg)
